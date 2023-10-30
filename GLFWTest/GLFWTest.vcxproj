@@ -104,13 +104,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Libraries\glfw-3.3.8.bin.WIN64\include\GLFW;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Libraries\glad\include;C:\Libraries\glew-2.2.0\include;C:\Libraries\glfw-3.3.8.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AssemblerOutput>All</AssemblerOutput>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Libraries\glfw-3.3.8.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;glfw3_mt.lib;glfw3dll.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Libraries\glew-2.2.0\lib\Release\x64;C:\Libraries\glfw-3.3.8.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;glfw3_mt.lib;glfw3dll.lib;opengl32.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -130,7 +132,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="core\asset-loader\AssetLoader.cpp" />
+    <ClCompile Include="core\logger\Logger.cpp" />
+    <ClCompile Include="core\rendering\VAO.cpp" />
+    <ClCompile Include="core\rendering\VBO.cpp" />
+    <ClCompile Include="core\rendering\EBO.cpp" />
     <ClCompile Include="GLFWTest.cpp" />
+    <ClCompile Include="thirdparty\glad\glad.c" />
+    <ClCompile Include="thirdparty\stb_image\stb_image.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="core\asset-loader\AssetLoader.hpp" />
+    <ClInclude Include="core\asset-loader\ShaderAssets.hpp" />
+    <ClInclude Include="core\logger\Logger.hpp" />
+    <ClInclude Include="core\rendering\EBO.hpp" />
+    <ClInclude Include="core\rendering\VAO.h" />
+    <ClInclude Include="thirdparty\stb_image\stb_image.h" />
+    <ClInclude Include="core\rendering\VBO.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="test_texture.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\default.fragment.glsl" />
+    <None Include="assets\shaders\default.vertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
