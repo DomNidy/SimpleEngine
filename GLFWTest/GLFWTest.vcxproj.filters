@@ -39,6 +39,9 @@
     <ClCompile Include="core\asset-loader\AssetLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core\rendering\OpenGLContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\logger\Logger.hpp">
@@ -71,5 +74,6 @@
   <ItemGroup>
     <None Include="assets\shaders\default.vertex.glsl" />
     <None Include="assets\shaders\default.fragment.glsl" />
+    <None Include="core\rendering\OpenGLContext.hpp" />
   </ItemGroup>
 </Project>

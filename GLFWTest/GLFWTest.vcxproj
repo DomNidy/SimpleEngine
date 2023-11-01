@@ -134,6 +134,7 @@
   <ItemGroup>
     <ClCompile Include="core\asset-loader\AssetLoader.cpp" />
     <ClCompile Include="core\logger\Logger.cpp" />
+    <ClCompile Include="core\rendering\OpenGLContext.cpp" />
     <ClCompile Include="core\rendering\VAO.cpp" />
     <ClCompile Include="core\rendering\VBO.cpp" />
     <ClCompile Include="core\rendering\EBO.cpp" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <None Include="assets\shaders\default.fragment.glsl" />
     <None Include="assets\shaders\default.vertex.glsl" />
+    <None Include="core\rendering\OpenGLContext.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

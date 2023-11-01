@@ -19,7 +19,7 @@ namespace whim {
 					// Assign the pointer to the internal data of shader_data
 					shader_string = shader_data_.c_str();
 				}
-		
+
 			private:
 				std::string shader_data_;
 			};

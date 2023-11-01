@@ -14,42 +14,38 @@ enum logger_level {
 namespace whim {
 	class Logger {
 	public:
-		// Returns the logger instance
-		static Logger& getInstance();
-
-		void log(const std::string& message);
-		void log_error(const std::string& message);
+		static void log(const std::string& message);
+		static void log_error(const std::string& message);
 
 		// Changes the logger prefix (NOTE: A space is automatically added to the end of the prefix)
-		void set_logger_prefix(const std::string& prefix);
+		static void set_logger_prefix(const std::string& prefix);
 
 		// Updates color of logger prefix
-		void set_prefix_color(WORD color_attribute);
-
+		static void set_prefix_color(WORD color_attribute);
 	private:
 		// Constructors
 		explicit Logger();
 
 		// Verbosity level of logs
-		logger_level level_;
+		static logger_level level_;
 		// Stores windows color flag for prefix
-		WORD color_attribute_;
+		static WORD color_attribute_;
 		// Stores windows color flag for prefix when logging an error message
-		WORD color_attribute_error_;
+		static WORD color_attribute_error_;
 		// Pointer to console handle
-		HANDLE hConsole_;
+		static HANDLE hConsole_;
 		// The log message
-		std::vector<std::string> messages_;
+		static std::vector<std::string> messages_;
 		// The prefix our console logs will have, ex: [WHIM LOGGER]:
-		std::string logger_prefix_ = "[WHIM LOGGER]: ";
+		static std::string logger_prefix_;
 
 		/// <summary>
 		/// Returns a formatted string containing the current timestamp
 		/// </summary>
-		std::string get_timestamp_string();
+		static std::string get_timestamp_string();
 
 		// Outputs a message on logger initialization
-		void write_initialization_message_(logger_level level);
+		static void write_initialization_message_(logger_level level);
 	};
 
 }

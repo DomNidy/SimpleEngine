@@ -6,6 +6,8 @@
 #include "core/asset-loader/AssetLoader.hpp"
 #include "core/asset-loader/ShaderAssets.hpp"
 
+using namespace whim;
+
 void check_shader_compilation(unsigned int shader, const char* shaderType)
 {
 	int success;
@@ -13,11 +15,10 @@ void check_shader_compilation(unsigned int shader, const char* shaderType)
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		whim::Logger logger = whim::Logger::getInstance();
 		std::string logErrorStr = shaderType;
 		logErrorStr += "::COMPILATION_FAILED\n";
-		logger.log_error(logErrorStr);
-		logger.log_error(infoLog);
+		Logger::log_error(logErrorStr);
+		Logger::log_error(infoLog);
 	}
 }
 
@@ -28,21 +29,18 @@ void check_program_linking(unsigned int program)
 	glGetProgramiv(program, GL_LINK_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(program, 512, NULL, infoLog);
-		whim::Logger logger = whim::Logger::getInstance();
-		logger.log_error("ERROR::SHADER_PROGRAM::LINKING_FAILED\n");
-		logger.log_error(infoLog);
+		Logger::log_error("ERROR::SHADER_PROGRAM::LINKING_FAILED\n");
+		Logger::log_error(infoLog);
 	}
 }
 
 int main(void)
 {
 
-	whim::Logger logger = whim::Logger::getInstance();
 	GLFWwindow* window;
-
 	/* Initialize the library */
 	if (!glfwInit()) {
-		logger.log_error("Failed to initialize glfw");
+		Logger::log_error("Failed to initialize glfw.");
 		return -1;
 	}
 
@@ -57,7 +55,7 @@ int main(void)
 
 	if (!window)
 	{
-		logger.log_error("Failed to create window");
+		Logger::log_error("Failed to create window");
 		glfwTerminate();
 		return -1;
 	}
@@ -70,11 +68,12 @@ int main(void)
 	// Note: It is important that this is called only after we run `glfwMakeContextCurrent()` on our window
 	// Glad will load the gl functions FOR THIS CONTEXT
 	if (gladLoadGL()) {
-		logger.log("Successfully loaded glad functions");
+		Logger::log("Successfully loaded glad functions");
 	}
 	else {
-		logger.log_error("Failed to load glad functions");
+		Logger::log_error("Failed to load glad functions");
 	}
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
 	// Specify viewport of OpenGL in the window
 	glViewport(0, 0, 800, 800);
@@ -88,7 +87,8 @@ int main(void)
 	// put into the vbo and sent to vertex shader
 	float verticies[] = {
 		-0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
 	};
 
@@ -96,11 +96,9 @@ int main(void)
 	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
-
 	// Specify the vertex attributes
 	// https://docs.gl/gl3/glVertexAttribPointer
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -130,15 +128,19 @@ int main(void)
 	glDeleteShader(fragmentShader);
 	glDeleteShader(vertexShader);
 
+	// Specify shader program
+	glUseProgram(shaderProgram);
+
+	// Set background color
+	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
-		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glUniform1f(glGetUniformLocation(shaderProgram, "Time"), 0.3);
 
-		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_POINTS, 0, 4);
 
 		glfwSwapBuffers(window);
 
