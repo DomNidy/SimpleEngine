@@ -1,8 +1,10 @@
 #version 330 core
-out vec4 FragColor;
+in vec3 fragColor;
 uniform float Time;
+
+out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(Time, 0.2f, 0.2f, 1.0f);
+    FragColor = vec4(fragColor.x, fragColor.y, fragColor.z, 1.0f);
 } 

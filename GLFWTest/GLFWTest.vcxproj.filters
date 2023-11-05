@@ -42,6 +42,9 @@
     <ClCompile Include="core\rendering\OpenGLContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="core\input\Input.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\logger\Logger.hpp">
@@ -63,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="core\asset-loader\ShaderAssets.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="core\input\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

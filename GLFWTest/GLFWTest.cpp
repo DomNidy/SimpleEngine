@@ -34,6 +34,10 @@ void check_program_linking(unsigned int program)
 	}
 }
 
+void moveCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	Logger::log(std::to_string(key));
+}
+
 int main(void)
 {
 
@@ -86,23 +90,34 @@ int main(void)
 	// These verticies will be
 	// put into the vbo and sent to vertex shader
 	float verticies[] = {
-		-0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
+		// Position				// Color values
+		-0.5f, -0.5f, 0.0f,		0.25f, 0.5f, 1,
+		0.5f, -0.5f, 0.0f,		0.25f, 0.5f, 1,
+		-0.5f, 0.5f, 0.0f,		0.25f, 0.5f, 1,
+
+
+		0.5f, -0.5f, 0.0f,		0.25f, 0.5f, 1,
+		0.5f, 0.5f, 0.0f,		0.25f, 0.5f, 1,
+		-0.5f, 0.5f, 0.0f,		0.25f, 0.5f, 1
 	};
 
 	// Creating VAO and binding it
 	unsigned int VBO, VAO;
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
 	glBindVertexArray(VAO);
+	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
 	// Specify the vertex attributes
 	// https://docs.gl/gl3/glVertexAttribPointer
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+	// Position attrib pointer
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+
+	// Color attrib pointer
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// Creating and compiling shaders
 	unsigned int vertexShader, fragmentShader;
@@ -135,15 +150,15 @@ int main(void)
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+
+	glfwSetKeyCallback(window, moveCallback);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
-		glUniform1f(glGetUniformLocation(shaderProgram, "Time"), 0.3);
 
-		glDrawArrays(GL_POINTS, 0, 4);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
-
 		glfwPollEvents();
 	}
 
