@@ -34,9 +34,52 @@ void check_program_linking(unsigned int program)
 	}
 }
 
-void moveCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void move_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	Logger::log(std::to_string(key));
 }
+
+static unsigned int compile_shader(unsigned int type, const std::string& source) {
+	unsigned int id = glCreateShader(type);
+	const char* src = source.c_str();
+	glShaderSource(id, 1, &src, nullptr);
+	glCompileShader(id);
+
+	// TODO: Handle errors here
+	int result;
+	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+	if (result == GL_FALSE) {
+		int length;
+		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+		char* message = (char*)_malloca(length * sizeof(char));
+		glGetShaderInfoLog(id, length, &length, message);
+		Logger::log_error("Failed to compile " + (type == GL_VERTEX_SHADER ? std::string("vertex") : std::string("fragment")) + " shader!");
+		Logger::log_error(message);
+		glDeleteShader(id);
+	}
+
+	return id;
+}
+
+// Returns id of the shader program created
+static int create_shader(const std::string& vertexShader, const std::string& fragmentShader) {
+	unsigned int program = glCreateProgram();
+	unsigned int vs = compile_shader(GL_VERTEX_SHADER, vertexShader);
+	unsigned int fs = compile_shader(GL_FRAGMENT_SHADER, fragmentShader);
+
+	// Attatch shader to shader program & link program
+	glAttachShader(program, vs);
+	glAttachShader(program, fs);
+	glLinkProgram(program);
+	glValidateProgram(program);
+
+	// Free memory allocated to shader as they've been linked
+	glDeleteShader(vs);
+	glDeleteShader(fs);
+
+	return program;
+}
+
+
 
 int main(void)
 {
@@ -120,41 +163,21 @@ int main(void)
 	glEnableVertexAttribArray(1);
 
 	// Creating and compiling shaders
-	unsigned int vertexShader, fragmentShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &whim::Assets::Shaders::default_vertex.shader_string, NULL);
-	glCompileShader(vertexShader);
-	check_shader_compilation(vertexShader, "VERTEX");
-
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &whim::Assets::Shaders::default_fragment.shader_string, NULL);
-	glCompileShader(fragmentShader);
-	check_shader_compilation(fragmentShader, "FRAGMENT");
-
-	// Creating shader program
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	check_program_linking(shaderProgram);
-
-	// Delete shaders as they are now linked and no longer needed
-	glDeleteShader(fragmentShader);
-	glDeleteShader(vertexShader);
+	unsigned int shaderProgram = create_shader(whim::Assets::Shaders::default_vertex.shader_string,
+		whim::Assets::Shaders::default_fragment.shader_string);
 
 	// Specify shader program
 	glUseProgram(shaderProgram);
 
 	// Set background color
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
 
 
-	glfwSetKeyCallback(window, moveCallback);
+	glfwSetKeyCallback(window, move_callback);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -162,8 +185,10 @@ int main(void)
 		glfwPollEvents();
 	}
 
+	glDeleteProgram(shaderProgram);
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
 	return 0;
 }
 
