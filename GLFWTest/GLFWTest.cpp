@@ -34,6 +34,34 @@ void check_program_linking(unsigned int program)
 	}
 }
 
+void rotate(unsigned int shaderProgram, float rotAmount) {
+	glUseProgram(shaderProgram);
+	unsigned int loc = glGetUniformLocation(shaderProgram, "u_Rot");
+
+	float X_rotMatrix[] = {
+		// Position				
+		1, 0, 0,
+		0, cos(rotAmount), -sin(rotAmount),
+		-0.5f, sin(rotAmount), cos(rotAmount)
+	};
+
+	float Y_rotMatrix[] = {
+		cos(rotAmount), 0, sin(rotAmount),
+		0, 1, 0,
+		-sin(rotAmount), 0, cos(rotAmount)
+	};
+
+	float Z_rotMatrix[] = {
+		cos(rotAmount), -sin(rotAmount), 0,
+		sin(rotAmount), cos(rotAmount), 0,
+		0, 0, 1
+	};
+
+	// glUniformMatrix3fv(loc, 1, false, X_rotMatrix);
+	glUniformMatrix3fv(loc, 1, false, Y_rotMatrix);
+	// glUniformMatrix3fv(loc, 1, false, Z_rotMatrix);
+}
+
 void move_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	Logger::log(std::to_string(key));
 }
@@ -172,17 +200,20 @@ int main(void)
 	// Set background color
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
-
+	float loops = 0;
 	glfwSetKeyCallback(window, move_callback);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		glClear(GL_COLOR_BUFFER_BIT);
+		rotate(shaderProgram, loops / 100);
+
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		loops += 0.5;
 	}
 
 	glDeleteProgram(shaderProgram);
