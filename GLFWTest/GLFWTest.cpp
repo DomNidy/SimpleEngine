@@ -5,6 +5,9 @@
 #include "core/logger/Logger.hpp"
 #include "core/asset-loader/AssetLoader.hpp"
 #include "core/asset-loader/ShaderAssets.hpp"
+#include <glm.hpp>
+#include "core/rendering/VBO.h"
+#include "core/rendering/EBO.hpp"
 
 using namespace whim;
 
@@ -33,8 +36,12 @@ void check_program_linking(unsigned int program)
 		Logger::log_error(infoLog);
 	}
 }
-
-void rotate(unsigned int shaderProgram, float rotAmount) {
+enum Rotations {
+	X,
+	Y,
+	Z
+};
+void rotate(unsigned int shaderProgram, float rotAmount, Rotations rotDir) {
 	glUseProgram(shaderProgram);
 	unsigned int loc = glGetUniformLocation(shaderProgram, "u_Rot");
 
@@ -57,9 +64,20 @@ void rotate(unsigned int shaderProgram, float rotAmount) {
 		0, 0, 1
 	};
 
-	// glUniformMatrix3fv(loc, 1, false, X_rotMatrix);
-	glUniformMatrix3fv(loc, 1, false, Y_rotMatrix);
-	// glUniformMatrix3fv(loc, 1, false, Z_rotMatrix);
+	switch (rotDir) {
+	case X:
+		glUniformMatrix3fv(loc, 1, false, X_rotMatrix);
+		break;
+	case Y:
+		glUniformMatrix3fv(loc, 1, false, Y_rotMatrix);
+		break;
+	case Z:
+		glUniformMatrix3fv(loc, 1, false, Z_rotMatrix);
+		break;
+	default:
+		whim::Logger::log_error("No rotation matrix was specified, unable to transform verticies");
+		break;
+	}
 }
 
 void move_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -79,9 +97,16 @@ static unsigned int compile_shader(unsigned int type, const std::string& source)
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
 		char* message = (char*)_malloca(length * sizeof(char));
-		glGetShaderInfoLog(id, length, &length, message);
+
+		if (message != nullptr) {
+			glGetShaderInfoLog(id, length, &length, message);
+			Logger::log_error(message);
+		}
+		else {
+			Logger::log_error("Failed to allocate memory for shader compilation error info log.");
+		}
+
 		Logger::log_error("Failed to compile " + (type == GL_VERTEX_SHADER ? std::string("vertex") : std::string("fragment")) + " shader!");
-		Logger::log_error(message);
 		glDeleteShader(id);
 	}
 
@@ -106,6 +131,7 @@ static int create_shader(const std::string& vertexShader, const std::string& fra
 
 	return program;
 }
+
 
 
 
@@ -135,7 +161,6 @@ int main(void)
 		return -1;
 	}
 
-
 	// Make the window's context current 
 	glfwMakeContextCurrent(window);
 
@@ -158,37 +183,92 @@ int main(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window);
 
-	// These verticies will be
-	// put into the vbo and sent to vertex shader
-	float verticies[] = {
-		// Position				// Color values
-		-0.5f, -0.5f, 0.0f,		0.25f, 0.5f, 1,
-		0.5f, -0.5f, 0.0f,		0.25f, 0.5f, 1,
-		-0.5f, 0.5f, 0.0f,		0.25f, 0.5f, 1,
+	float vertices[] = {
+		// Vertices positions          // Color values          // Texture coords
+		// Front face
+		-0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       0.0f, 0.0f, // Bottom Left 0
+		 0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       1.0f, 0.0f, // Bottom Right 1
+		-0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       0.0f, 1.0f, // Top Left 2
+		 0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       1.0f, 1.0f, // Top Right 3
 
+		 // Bottom face
+		 -0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 0.0f,       0.0f, 0.0f, // Bottom Left 4
+		  0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 0.0f,       1.0f, 0.0f, // Bottom Right 5
+		 -0.5f, -0.5f,  0.5f,         1.0f, 0.5f, 0.0f,       0.0f, 1.0f, // Top Left 6
+		  0.5f, -0.5f,  0.5f,         0.0f, 0.5f, 0.0f,       1.0f, 1.0f, // Top Right 7
 
-		0.5f, -0.5f, 0.0f,		0.25f, 0.5f, 1,
-		0.5f, 0.5f, 0.0f,		0.25f, 0.5f, 1,
-		-0.5f, 0.5f, 0.0f,		0.25f, 0.5f, 1
+		  // Back face
+		   0.5f, -0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 8
+		  -0.5f, -0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 9
+		   0.5f,  0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       0.0f, 1.0f, // Top Left 10
+		  -0.5f,  0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       1.0f, 1.0f, // Top Right 11
+
+		  // Left face
+		  -0.5f, -0.5f, -0.5f,         1.0f, 1.0f, 0.0f,       0.0f, 0.0f, // Bottom Left 12
+		  -0.5f, -0.5f,  0.5f,         1.0f, 1.0f, 0.0f,       1.0f, 0.0f, // Bottom Right 13
+		  -0.5f,  0.5f, -0.5f,         1.0f, 1.0f, 0.0f,       0.0f, 1.0f, // Top Left 14
+		  -0.5f,  0.5f,  0.5f,         1.0f, 1.0f, 0.0f,       1.0f, 1.0f, // Top Right 15
+
+		  // Right face
+		   0.5f, -0.5f,  0.5f,         0.0f, 1.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 16
+		   0.5f, -0.5f, -0.5f,         0.0f, 1.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 17
+		   0.5f,  0.5f,  0.5f,         0.0f, 1.0f, 1.0f,       0.0f, 1.0f, // Top Left 18
+		   0.5f,  0.5f, -0.5f,         0.0f, 1.0f, 1.0f,       1.0f, 1.0f, // Top Right 19
+
+		   // Top face
+		   -0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 0.5f,       0.0f, 0.0f, // Bottom Left 20
+			0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 0.5f,       1.0f, 0.0f, // Bottom Right 21
+		   -0.5f,  0.5f, -0.5f,         0.5f, 0.0f, 0.5f,       0.0f, 1.0f, // Top Left 22
+			0.5f,  0.5f, -0.5f,          0.5f, 0.0f, 0.5f,       1.0f, 1.0f, // Top Right 23
 	};
 
+	unsigned int indices[] = {
+		// Front face indices
+		0, 2, 1,
+		1, 2, 3,
+
+		// Bottom face indices
+		4, 5, 6,
+		5, 7, 6,
+
+		// Back face indices
+		8, 10, 9,
+		9, 10, 11,
+
+		// Left face indices
+		12, 14, 13,
+		13, 14, 15,
+
+		// Right face indices
+		16, 18, 17,
+		17, 18, 19,
+
+		// Top face indices
+		20, 22, 21,
+		21, 22, 23,
+	};
+
+
+
 	// Creating VAO and binding it
-	unsigned int VBO, VAO;
+	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW);
-	// Specify the vertex attributes
-	// https://docs.gl/gl3/glVertexAttribPointer
 
+
+	// Create vbo
+	whim::VBO cubeVBO;
+	cubeVBO.setData(std::vector<float>(vertices, vertices + 192));
 	// Position attrib pointer
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
+	cubeVBO.linkAttrib(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	// Color attrib pointer
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
+	cubeVBO.linkAttrib(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	// Texcoord attrib pointer
+	cubeVBO.linkAttrib(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+	// Create ebo
+	whim::EBO cubeEBO;
+	cubeEBO.setData(std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0])));
 
 	// Creating and compiling shaders
 	unsigned int shaderProgram = create_shader(whim::Assets::Shaders::default_vertex.shader_string,
@@ -200,20 +280,37 @@ int main(void)
 	// Set background color
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
-	float loops = 0;
+	// Loading a texture
+	int width, height, nrChannels;
+	unsigned char* textureData = stbi_load("test_texture.png", &width, &height, &nrChannels, 0);
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	stbi_image_free(textureData);
+
+	double lastTime = glfwGetTime();
+	double rotSpeed = 5;
+	double currentTime = 0.0;
+	double deltaTime = 0.0;
+
 	glfwSetKeyCallback(window, move_callback);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
+		currentTime = glfwGetTime();
+		deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+
 		glClear(GL_COLOR_BUFFER_BIT);
-		rotate(shaderProgram, loops / 100);
+		rotate(shaderProgram, currentTime, Rotations::Y);
 
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-		loops += 0.5;
 	}
 
 	glDeleteProgram(shaderProgram);

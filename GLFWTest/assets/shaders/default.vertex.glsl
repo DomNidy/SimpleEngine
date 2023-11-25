@@ -1,13 +1,16 @@
 #version 430 core
 
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 color;
-layout (location = 2) uniform mat3x3 u_Rot;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 aTexCoord;
+layout (location = 3) uniform mat3x3 u_Rot;
 
 out vec3 fragColor;
+out vec2 TexCoord;
 
 void main() {
-  fragColor = color;
+  TexCoord = aTexCoord;
+  fragColor = aColor;
   gl_PointSize = 15;
-  gl_Position = vec4(u_Rot * aPos, 1.0f);
+  gl_Position = vec4(u_Rot * aPos, 1.0f) ;
 }
