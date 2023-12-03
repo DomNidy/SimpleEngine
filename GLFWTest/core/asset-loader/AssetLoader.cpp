@@ -1,10 +1,4 @@
 #include "AssetLoader.hpp"
-#include "../logger/Logger.hpp"
-#include <fstream>
-#include <iostream>
-#include <map>
-
-
 
 namespace whim {
 	AssetLoader::AssetLoader() {

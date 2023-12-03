@@ -1,6 +1,5 @@
 #include "VBO.h"
-#include "../../core//logger/Logger.hpp"
-#include <sstream>
+
 namespace whim {
 
 	VBO::VBO() {

@@ -1,6 +1,10 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include "../logger/Logger.hpp"
+#include <fstream>
+#include <iostream>
+#include <map>
 
 namespace whim {
 

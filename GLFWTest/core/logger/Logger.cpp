@@ -1,10 +1,4 @@
-#include <string>
 #include "logger.hpp"
-#include <iostream>
-#include <ctime>
-#include <sstream>
-#include <chrono>
-#include <GL/glew.h>
 
 namespace whim {
 	// Initializing static member variables

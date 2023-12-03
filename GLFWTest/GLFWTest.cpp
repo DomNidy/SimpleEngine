@@ -3,11 +3,13 @@
 #include <GLFW/glfw3.h>
 #include "thirdparty/stb_image/stb_image.h"
 #include "core/logger/Logger.hpp"
+#include "core/input/Input.hpp"
 #include "core/asset-loader/AssetLoader.hpp"
 #include "core/asset-loader/ShaderAssets.hpp"
 #include <glm.hpp>
 #include "core/rendering/VBO.h"
 #include "core/rendering/EBO.hpp"
+#include "core/rendering/VAO.h"
 
 using namespace whim;
 
@@ -80,10 +82,6 @@ void rotate(unsigned int shaderProgram, float rotAmount, Rotations rotDir) {
 	}
 }
 
-void move_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	Logger::log(std::to_string(key));
-}
-
 static unsigned int compile_shader(unsigned int type, const std::string& source) {
 	unsigned int id = glCreateShader(type);
 	const char* src = source.c_str();
@@ -131,8 +129,6 @@ static int create_shader(const std::string& vertexShader, const std::string& fra
 
 	return program;
 }
-
-
 
 
 int main(void)
@@ -186,16 +182,16 @@ int main(void)
 	float vertices[] = {
 		// Vertices positions          // Color values          // Texture coords
 		// Front face
-		-0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       0.0f, 0.0f, // Bottom Left 0
-		 0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       1.0f, 0.0f, // Bottom Right 1
-		-0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       0.0f, 1.0f, // Top Left 2
-		 0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 0.0f,       1.0f, 1.0f, // Top Right 3
+		-0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 0
+		 0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 1
+		-0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       0.0f, 1.0f, // Top Left 2
+		 0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       1.0f, 1.0f, // Top Right 3
 
 		 // Bottom face
-		 -0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 0.0f,       0.0f, 0.0f, // Bottom Left 4
-		  0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 0.0f,       1.0f, 0.0f, // Bottom Right 5
-		 -0.5f, -0.5f,  0.5f,         1.0f, 0.5f, 0.0f,       0.0f, 1.0f, // Top Left 6
-		  0.5f, -0.5f,  0.5f,         0.0f, 0.5f, 0.0f,       1.0f, 1.0f, // Top Right 7
+		 -0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 1.0f,       0.0f, 0.0f, // Bottom Left 4
+		  0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 1.0f,       1.0f, 0.0f, // Bottom Right 5
+		 -0.5f, -0.5f,  0.5f,         1.0f, 0.5f, 1.0f,       0.0f, 1.0f, // Top Left 6
+		  0.5f, -0.5f,  0.5f,         0.0f, 0.5f, 1.0f,       1.0f, 1.0f, // Top Right 7
 
 		  // Back face
 		   0.5f, -0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 8
@@ -204,10 +200,10 @@ int main(void)
 		  -0.5f,  0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       1.0f, 1.0f, // Top Right 11
 
 		  // Left face
-		  -0.5f, -0.5f, -0.5f,         1.0f, 1.0f, 0.0f,       0.0f, 0.0f, // Bottom Left 12
-		  -0.5f, -0.5f,  0.5f,         1.0f, 1.0f, 0.0f,       1.0f, 0.0f, // Bottom Right 13
-		  -0.5f,  0.5f, -0.5f,         1.0f, 1.0f, 0.0f,       0.0f, 1.0f, // Top Left 14
-		  -0.5f,  0.5f,  0.5f,         1.0f, 1.0f, 0.0f,       1.0f, 1.0f, // Top Right 15
+		  -0.5f, -0.5f, -0.5f,         1.0f, 1.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 12
+		  -0.5f, -0.5f,  0.5f,         1.0f, 1.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 13
+		  -0.5f,  0.5f, -0.5f,         1.0f, 1.0f, 1.0f,       0.0f, 1.0f, // Top Left 14
+		  -0.5f,  0.5f,  0.5f,         1.0f, 1.0f, 1.0f,       1.0f, 1.0f, // Top Right 15
 
 		  // Right face
 		   0.5f, -0.5f,  0.5f,         0.0f, 1.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 16
@@ -216,10 +212,10 @@ int main(void)
 		   0.5f,  0.5f, -0.5f,         0.0f, 1.0f, 1.0f,       1.0f, 1.0f, // Top Right 19
 
 		   // Top face
-		   -0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 0.5f,       0.0f, 0.0f, // Bottom Left 20
-			0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 0.5f,       1.0f, 0.0f, // Bottom Right 21
-		   -0.5f,  0.5f, -0.5f,         0.5f, 0.0f, 0.5f,       0.0f, 1.0f, // Top Left 22
-			0.5f,  0.5f, -0.5f,          0.5f, 0.0f, 0.5f,       1.0f, 1.0f, // Top Right 23
+		   -0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 20
+			0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 21
+		   -0.5f,  0.5f, -0.5f,         0.5f, 0.0f, 1.0f,       0.0f, 1.0f, // Top Left 22
+			0.5f,  0.5f, -0.5f,          0.5f, 0.0f, 1.0f,       1.0f, 1.0f, // Top Right 23
 	};
 
 	unsigned int indices[] = {
@@ -251,10 +247,8 @@ int main(void)
 
 
 	// Creating VAO and binding it
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
+	whim::VAO cubeVAO;
+	cubeVAO.bind();
 
 	// Create vbo
 	whim::VBO cubeVBO;
@@ -269,6 +263,7 @@ int main(void)
 	// Create ebo
 	whim::EBO cubeEBO;
 	cubeEBO.setData(std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0])));
+
 
 	// Creating and compiling shaders
 	unsigned int shaderProgram = create_shader(whim::Assets::Shaders::default_vertex.shader_string,
@@ -287,7 +282,7 @@ int main(void)
 	unsigned int texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(textureData);
 
@@ -296,7 +291,7 @@ int main(void)
 	double currentTime = 0.0;
 	double deltaTime = 0.0;
 
-	glfwSetKeyCallback(window, move_callback);
+	glfwSetKeyCallback(window, Input::read_inputs);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{

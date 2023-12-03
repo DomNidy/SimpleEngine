@@ -24,8 +24,8 @@ namespace whim {
 				std::string shader_data_;
 			};
 
-			inline Shader default_vertex{ "assets/shaders/default.vertex.glsl" };
-			inline Shader default_fragment{ "assets/shaders/default.fragment.glsl" };
+			Shader default_vertex{ "assets/shaders/default.vertex.glsl" };
+			Shader default_fragment{ "assets/shaders/default.fragment.glsl" };
 		}
 	}
 }

@@ -71,7 +71,7 @@
     <ClInclude Include="core\asset-loader\ShaderAssets.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="core\input\Input.h">
+    <ClInclude Include="core\input\Input.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
