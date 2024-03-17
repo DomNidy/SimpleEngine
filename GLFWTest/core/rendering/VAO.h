@@ -16,8 +16,5 @@ namespace whim {
 		void bind();
 
 		void unbind() const;
-
-
-
 	};
 }

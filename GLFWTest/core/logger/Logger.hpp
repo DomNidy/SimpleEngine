@@ -11,23 +11,27 @@
 #include <chrono>
 #include <ctime>
 
-enum logger_level {
+enum logger_level
+{
 	OFF,
 	LOW_VERBOSITY,
 	HIGH_VERBOSITY
 };
 
-namespace whim {
-	class Logger {
+namespace whim
+{
+	class Logger
+	{
 	public:
-		static void log(const std::string& message);
-		static void log_error(const std::string& message);
+		static void log(const std::string &message);
+		static void log_error(const std::string &message);
 
 		// Changes the logger prefix (NOTE: A space is automatically added to the end of the prefix)
-		static void set_logger_prefix(const std::string& prefix);
+		static void set_logger_prefix(const std::string &prefix);
 
 		// Updates color of logger prefix
 		static void set_prefix_color(WORD color_attribute);
+
 	private:
 		// Constructors
 		explicit Logger();

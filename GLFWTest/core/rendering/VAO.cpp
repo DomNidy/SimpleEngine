@@ -20,6 +20,4 @@ namespace whim {
 	void VAO::unbind() const {
 		glBindVertexArray(0);
 	}
-
-
 }

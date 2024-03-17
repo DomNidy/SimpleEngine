@@ -3,16 +3,21 @@
 #include "AssetLoader.hpp"
 #include "../logger/Logger.hpp"
 
-namespace whim {
+namespace whim
+{
 
-	namespace Assets {
+	namespace Assets
+	{
 
-		namespace Shaders {
+		namespace Shaders
+		{
 
-			struct Shader {
+			struct Shader
+			{
 			public:
-				const char* shader_string;
-				Shader(const std::string& filePath) {
+				const char *shader_string;
+				Shader(const std::string &filePath)
+				{
 					std::string temp_shader_string_ = whim::AssetLoader::load_shader_string(filePath);
 					// Copy the shader data to shader_data_ member
 					shader_data_ = temp_shader_string_;
@@ -24,8 +29,8 @@ namespace whim {
 				std::string shader_data_;
 			};
 
-			Shader default_vertex{ "assets/shaders/default.vertex.glsl" };
-			Shader default_fragment{ "assets/shaders/default.fragment.glsl" };
+			Shader default_vertex{"assets/shaders/default.vertex.glsl"};
+			Shader default_fragment{"assets/shaders/default.fragment.glsl"};
 		}
 	}
 }

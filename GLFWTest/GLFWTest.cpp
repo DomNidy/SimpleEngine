@@ -1,3 +1,7 @@
+#include "thirdparty/imgui/imgui.h"
+#include "thirdparty/imgui/imgui_impl_glfw.h"
+#include "thirdparty/imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -7,11 +11,16 @@
 #include "core/asset-loader/AssetLoader.hpp"
 #include "core/asset-loader/ShaderAssets.hpp"
 #include <glm.hpp>
+#include "gtc/matrix_transform.hpp"
+#include "gtc/type_ptr.hpp"
 #include "core/rendering/VBO.h"
 #include "core/rendering/EBO.hpp"
 #include "core/rendering/VAO.h"
 
 using namespace whim;
+
+constexpr double pi = 3.14159265358979323846;
+constexpr double e = 2.71828182845904523536;
 
 void check_shader_compilation(unsigned int shader, const char* shaderType)
 {
@@ -38,48 +47,43 @@ void check_program_linking(unsigned int program)
 		Logger::log_error(infoLog);
 	}
 }
-enum Rotations {
-	X,
-	Y,
-	Z
-};
-void rotate(unsigned int shaderProgram, float rotAmount, Rotations rotDir) {
+
+
+
+void rotate(unsigned int shaderProgram, float angleX, float angleY, float angleZ) {
 	glUseProgram(shaderProgram);
 	unsigned int loc = glGetUniformLocation(shaderProgram, "u_Rot");
 
-	float X_rotMatrix[] = {
-		// Position				
+	// Convert to radians
+	float _angleX = glm::radians(angleX);
+	float _angleY = glm::radians(angleY);
+	float _angleZ = glm::radians(angleZ);
+
+
+	// Rotation matrices for x, y, and z axes
+	glm::mat3 rotationX = glm::mat3(
 		1, 0, 0,
-		0, cos(rotAmount), -sin(rotAmount),
-		-0.5f, sin(rotAmount), cos(rotAmount)
-	};
+		0, glm::cos(_angleX), -glm::sin(_angleX),
+		0, glm::sin(_angleX), glm::cos(_angleX)
+	);
 
-	float Y_rotMatrix[] = {
-		cos(rotAmount), 0, sin(rotAmount),
+	glm::mat3 rotationY = glm::mat3(
+		glm::cos(_angleY), 0, glm::sin(_angleY),
 		0, 1, 0,
-		-sin(rotAmount), 0, cos(rotAmount)
-	};
+		-glm::sin(_angleY), 0, glm::cos(_angleY)
+	);
 
-	float Z_rotMatrix[] = {
-		cos(rotAmount), -sin(rotAmount), 0,
-		sin(rotAmount), cos(rotAmount), 0,
+	glm::mat3 rotationZ = glm::mat3(
+		glm::cos(_angleZ), -glm::sin(_angleZ), 0,
+		glm::sin(_angleZ), glm::cos(_angleZ), 0,
 		0, 0, 1
-	};
+	);
 
-	switch (rotDir) {
-	case X:
-		glUniformMatrix3fv(loc, 1, false, X_rotMatrix);
-		break;
-	case Y:
-		glUniformMatrix3fv(loc, 1, false, Y_rotMatrix);
-		break;
-	case Z:
-		glUniformMatrix3fv(loc, 1, false, Z_rotMatrix);
-		break;
-	default:
-		whim::Logger::log_error("No rotation matrix was specified, unable to transform verticies");
-		break;
-	}
+	// Combine the rotation matrices
+	glm::mat3 uRot = rotationX * rotationY * rotationZ;
+
+
+	glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(uRot));
 }
 
 static unsigned int compile_shader(unsigned int type, const std::string& source) {
@@ -130,17 +134,39 @@ static int create_shader(const std::string& vertexShader, const std::string& fra
 	return program;
 }
 
+static void glfw_error_callback(int error, const char* description) {
+	std::string errorMessage = "CALLBACK Error " + std::to_string(error) + ": " + description;
+	whim::Logger::log(errorMessage);
+}
+
+// TODO: Move these keymappings to use set key callback from opengl
+//static void process_inputs(GLFWwindow* window, GLuint shaderProgram, float rot) {
+//
+//	if (glfwGetKey(window, 65) == GLFW_PRESS) {
+//		rot -= 0.001f;
+//		rotate(shaderProgram, rot);
+//	}
+//
+//	if (glfwGetKey(window, 68) == GLFW_PRESS) {
+//		rot += 0.001f;
+//		rotate(shaderProgram, rot);
+//	}
+//}
 
 int main(void)
 {
 
+	glfwSetErrorCallback(glfw_error_callback);
+
 	GLFWwindow* window;
-	/* Initialize the library */
+	/* Initialize the glfw */
 	if (!glfwInit()) {
 		Logger::log_error("Failed to initialize glfw.");
 		return -1;
 	}
 
+	// GLSL (gl shading language) version
+	const char* glsl_version = "#version 330 core";
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	// Tell GLFW we are using the CORE profile
@@ -148,7 +174,7 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(800, 800, "Hello World", NULL, NULL);
+	window = glfwCreateWindow(1280, 720, "Whim Engine", NULL, NULL);
 
 	if (!window)
 	{
@@ -169,6 +195,22 @@ int main(void)
 	else {
 		Logger::log_error("Failed to load glad functions");
 	}
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable keyboard controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; // Enable gamepad controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsLight();
+
+	// Setup platform/renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
 	// Specify viewport of OpenGL in the window
@@ -244,11 +286,10 @@ int main(void)
 		21, 22, 23,
 	};
 
-
-
 	// Creating VAO and binding it
 	whim::VAO cubeVAO;
 	cubeVAO.bind();
+
 
 	// Create vbo
 	whim::VBO cubeVBO;
@@ -260,10 +301,10 @@ int main(void)
 	// Texcoord attrib pointer
 	cubeVBO.linkAttrib(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
+
 	// Create ebo
 	whim::EBO cubeEBO;
 	cubeEBO.setData(std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0])));
-
 
 	// Creating and compiling shaders
 	unsigned int shaderProgram = create_shader(whim::Assets::Shaders::default_vertex.shader_string,
@@ -278,6 +319,12 @@ int main(void)
 	// Loading a texture
 	int width, height, nrChannels;
 	unsigned char* textureData = stbi_load("test_texture.png", &width, &height, &nrChannels, 0);
+	if (!textureData) {
+		whim::Logger::log_error("Faled to load texture");
+	}
+	else {
+		whim::Logger::log("Loaded texture");
+	}
 
 	unsigned int texture;
 	glGenTextures(1, &texture);
@@ -286,32 +333,64 @@ int main(void)
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(textureData);
 
+	// UI state
+	bool show_window = true;
+	glm::vec3 clear_color = glm::vec3(0.07f, 0.13f, 0.17f);
+
 	double lastTime = glfwGetTime();
 	double rotSpeed = 5;
 	double currentTime = 0.0;
 	double deltaTime = 0.0;
+	// 65 is A, 68 is D
+	float rotX = 0.001f;
+	float rotY = 0.001f;
+	float rotZ = 0.001f;
 
 	glfwSetKeyCallback(window, Input::read_inputs);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
-		currentTime = glfwGetTime();
-		deltaTime = currentTime - lastTime;
-		lastTime = currentTime;
+		glfwPollEvents();
 
+		// Start the dear imgui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		if (show_window) {
+			ImGui::Begin("Whim Debugger");
+
+			ImGui::Text("Transform");
+			ImGui::SliderFloat("rotation X", &rotX, 0.0f, 360);
+			ImGui::SliderFloat("rotation Y", &rotY, 0.0f, 360);
+			ImGui::SliderFloat("rotation Z", &rotZ, 0.0f, 360);
+
+			ImGui::ColorEdit3("clear color", glm::value_ptr(clear_color));
+
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::End();
+		}
+
+		// Process inputs/logic
+		rotate(shaderProgram, rotX, rotY, rotZ);
+
+		// Rendering
 		glClear(GL_COLOR_BUFFER_BIT);
-		rotate(shaderProgram, currentTime, Rotations::Y);
+		// Update the clear color (incase we changed it from the debugger)
+		glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
 
+		// Imgui rendering (do this before our draw calls)
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		// Our draw calls
 		glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
-
 	glDeleteProgram(shaderProgram);
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
 	return 0;
 }
 

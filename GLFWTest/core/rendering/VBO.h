@@ -1,7 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include <vector>
-
+#include "../logger/Logger.hpp"
 
 namespace whim {
 
@@ -25,6 +25,8 @@ namespace whim {
 		// https://docs.gl/gl3/glVertexAttribPointer
 		void linkAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer);
 
+		// Log out the data in the vbo
+		void logVBOData();
 	};
 }
 

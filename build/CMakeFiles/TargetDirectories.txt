@@ -1,0 +1,3 @@
+C:/Users/dnidy/source/repos/GLFWTest/build/CMakeFiles/WhimEngine.dir
+C:/Users/dnidy/source/repos/GLFWTest/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/dnidy/source/repos/GLFWTest/build/CMakeFiles/ZERO_CHECK.dir
