@@ -48,8 +48,6 @@ void check_program_linking(unsigned int program)
 	}
 }
 
-
-
 void rotate(unsigned int shaderProgram, float angleX, float angleY, float angleZ) {
 	glUseProgram(shaderProgram);
 	unsigned int loc = glGetUniformLocation(shaderProgram, "u_Rot");

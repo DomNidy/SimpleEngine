@@ -24,6 +24,7 @@
     <ProjectGuid>{44ddcd9f-cd98-4a80-8adb-a0dbfca00ab7}</ProjectGuid>
     <RootNamespace>GLFWTest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>WhimEngine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
