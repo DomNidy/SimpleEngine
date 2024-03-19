@@ -16,5 +16,10 @@ namespace whim {
 		void bind();
 
 		void unbind() const;
+
+		// Specify the vertex attribute pointers
+		// https://docs.gl/gl3/glVertexAttribPointer
+		void setAttributePointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer);
+
 	};
 }

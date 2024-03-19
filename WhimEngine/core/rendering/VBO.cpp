@@ -2,7 +2,6 @@
 
 namespace whim {
 	VBO::VBO() {
-
 		glGenBuffers(1, &id);
 	}
 
@@ -19,16 +18,10 @@ namespace whim {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	void VBO::setData(const std::vector<float>& data) {
+	void VBO::setData(const std::vector<whim::Vertex>& data) {
 		bind();
-		glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
-	}
-
-	void VBO::linkAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer)
-	{
-		bind();
-		glVertexAttribPointer(index, size, type, normalized, stride, pointer);
-		glEnableVertexAttribArray(index);
+		// Gl buffer data expects size to be in bytes
+		glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(whim::Vertex), data.data(), GL_STATIC_DRAW);
 	}
 
 	void VBO::logVBOData() {
@@ -48,8 +41,6 @@ namespace whim {
 			whim::Logger::log("TexCoord=(" + std::to_string(data[i + 6]) + ", " + std::to_string(data[i + 7]) + ")");
 
 		}
-
-
 	}
 
 }

@@ -10,6 +10,7 @@
 #include "core/input/Input.hpp"
 #include "core/asset-loader/AssetLoader.hpp"
 #include "core/asset-loader/ShaderAssets.hpp"
+#include "core/rendering/Vertex.h"
 #include <glm.hpp>
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
@@ -219,87 +220,87 @@ int main(void)
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window);
 
-	float vertices[] = {
-		// Vertices positions          // Color values          // Texture coords
+	whim::Vertex vertices[] = {
 		// Front face
-		-0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 0
-		 0.5f, -0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 1
-		-0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       0.0f, 1.0f, // Top Left 2
-		 0.5f,  0.5f,  0.5f,          1.0f, 0.0f, 1.0f,       1.0f, 1.0f, // Top Right 3
+		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
 
-		 // Bottom face
-		 -0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 1.0f,       0.0f, 0.0f, // Bottom Left 4
-		  0.5f, -0.5f, -0.5f,         1.0f, 0.5f, 1.0f,       1.0f, 0.0f, // Bottom Right 5
-		 -0.5f, -0.5f,  0.5f,         1.0f, 0.5f, 1.0f,       0.0f, 1.0f, // Top Left 6
-		  0.5f, -0.5f,  0.5f,         0.0f, 0.5f, 1.0f,       1.0f, 1.0f, // Top Right 7
+		// Back face
+		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f)},
 
-		  // Back face
-		   0.5f, -0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 8
-		  -0.5f, -0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 9
-		   0.5f,  0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       0.0f, 1.0f, // Top Left 10
-		  -0.5f,  0.5f, -0.5f,         0.0f, 0.0f, 1.0f,       1.0f, 1.0f, // Top Right 11
+		// Left face
+		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
 
-		  // Left face
-		  -0.5f, -0.5f, -0.5f,         1.0f, 1.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 12
-		  -0.5f, -0.5f,  0.5f,         1.0f, 1.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 13
-		  -0.5f,  0.5f, -0.5f,         1.0f, 1.0f, 1.0f,       0.0f, 1.0f, // Top Left 14
-		  -0.5f,  0.5f,  0.5f,         1.0f, 1.0f, 1.0f,       1.0f, 1.0f, // Top Right 15
+		// Right face
+		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
 
-		  // Right face
-		   0.5f, -0.5f,  0.5f,         0.0f, 1.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 16
-		   0.5f, -0.5f, -0.5f,         0.0f, 1.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 17
-		   0.5f,  0.5f,  0.5f,         0.0f, 1.0f, 1.0f,       0.0f, 1.0f, // Top Left 18
-		   0.5f,  0.5f, -0.5f,         0.0f, 1.0f, 1.0f,       1.0f, 1.0f, // Top Right 19
+		// Top face
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
 
-		   // Top face
-		   -0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 1.0f,       0.0f, 0.0f, // Bottom Left 20
-			0.5f,  0.5f,  0.5f,         0.5f, 0.0f, 1.0f,       1.0f, 0.0f, // Bottom Right 21
-		   -0.5f,  0.5f, -0.5f,         0.5f, 0.0f, 1.0f,       0.0f, 1.0f, // Top Left 22
-			0.5f,  0.5f, -0.5f,          0.5f, 0.0f, 1.0f,       1.0f, 1.0f, // Top Right 23
+		// Bottom face
+		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f)},
 	};
 
 	unsigned int indices[] = {
 		// Front face indices
-		0, 2, 1,
-		1, 2, 3,
+		0, 1, 2,
+		2, 1, 3,
 
-		// Bottom face indices
+		// Back face
 		4, 5, 6,
-		5, 7, 6,
+		6, 5, 7,
 
-		// Back face indices
-		8, 10, 9,
-		9, 10, 11,
+		// Left face
+		8, 9, 10,
+		10, 9, 11,
 
-		// Left face indices
-		12, 14, 13,
-		13, 14, 15,
+		// Right face
+		12, 13, 14,
+		14, 13, 15,
 
-		// Right face indices
-		16, 18, 17,
-		17, 18, 19,
+		// Top face
+		16, 17, 18,
+		18, 17, 19,
 
-		// Top face indices
-		20, 22, 21,
-		21, 22, 23,
+		// Bottom face
+		20, 21, 22,
+		22, 21, 23
 	};
 
 	// Creating VAO and binding it
+	// The vao encapsulates vbo and ebo
 	whim::VAO cubeVAO;
 	cubeVAO.bind();
 
-
 	// Create vbo
 	whim::VBO cubeVBO;
-	cubeVBO.setData(std::vector<float>(vertices, vertices + 192));
+	cubeVBO.setData(std::vector<whim::Vertex>(vertices, vertices + 24));
+
 	// Position attrib pointer
-	cubeVBO.linkAttrib(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	cubeVAO.setAttributePointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	// Color attrib pointer
-	cubeVBO.linkAttrib(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	cubeVAO.setAttributePointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	// Texcoord attrib pointer
-	cubeVBO.linkAttrib(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	cubeVAO.setAttributePointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
-
+	cubeVBO.logVBOData();
 	// Create ebo
 	whim::EBO cubeEBO;
 	cubeEBO.setData(std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0])));

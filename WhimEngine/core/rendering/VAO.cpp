@@ -20,4 +20,12 @@ namespace whim {
 	void VAO::unbind() const {
 		glBindVertexArray(0);
 	}
+
+	// Configures vertex attribute layouts for currently bound VBOS
+	void VAO::setAttributePointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer)
+	{
+		bind();
+		glVertexAttribPointer(index, size, type, normalized, stride, pointer);
+		glEnableVertexAttribArray(index);
+	}
 }
