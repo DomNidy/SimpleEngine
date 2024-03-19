@@ -332,6 +332,14 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
+# Visual Studio build artifacts
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.vcxproj.vspscc
+build/
+
 # OpenCover UI analysis results
 OpenCover/
 
