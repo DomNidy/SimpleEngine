@@ -17,7 +17,6 @@ namespace whim {
 		std::string shader_string;
 		std::string line;
 
-		whim::Logger::log("Attempting to load shader from file " + filePath);
 		shader_file.open(filePath);
 
 		if (!shader_file.is_open())

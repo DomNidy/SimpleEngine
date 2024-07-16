@@ -17,6 +17,8 @@
 #include "core/rendering/VBO.h"
 #include "core/rendering/EBO.hpp"
 #include "core/rendering/VAO.h"
+#include "core/rendering/Camera.hpp"
+#include "core/rendering/Scene.h"
 
 using namespace whim;
 
@@ -51,38 +53,15 @@ void check_program_linking(unsigned int program)
 
 void rotate(unsigned int shaderProgram, float angleX, float angleY, float angleZ) {
 	glUseProgram(shaderProgram);
-	unsigned int loc = glGetUniformLocation(shaderProgram, "u_Rot");
+	unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 
-	// Convert to radians
-	float _angleX = glm::radians(angleX);
-	float _angleY = glm::radians(angleY);
-	float _angleZ = glm::radians(angleZ);
+	// Create a rotation matrix combining all axes
+	glm::mat4 trans = glm::rotate(glm::mat4(1.0f), float(angleX * pi / 180.f), glm::vec3(1.0f, 0.0f, 0.0f));
+	trans = glm::rotate(trans, float(angleY * pi / 180.f), glm::vec3(0.0f, 1.0f, 0.0f));
+	trans = glm::rotate(trans, float(angleZ * pi / 180.f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-
-	// Rotation matrices for x, y, and z axes
-	glm::mat3 rotationX = glm::mat3(
-		1, 0, 0,
-		0, glm::cos(_angleX), -glm::sin(_angleX),
-		0, glm::sin(_angleX), glm::cos(_angleX)
-	);
-
-	glm::mat3 rotationY = glm::mat3(
-		glm::cos(_angleY), 0, glm::sin(_angleY),
-		0, 1, 0,
-		-glm::sin(_angleY), 0, glm::cos(_angleY)
-	);
-
-	glm::mat3 rotationZ = glm::mat3(
-		glm::cos(_angleZ), -glm::sin(_angleZ), 0,
-		glm::sin(_angleZ), glm::cos(_angleZ), 0,
-		0, 0, 1
-	);
-
-	// Combine the rotation matrices
-	glm::mat3 uRot = rotationX * rotationY * rotationZ;
-
-
-	glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(uRot));
+	// Send transformation matrix to the GPU
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 }
 
 static unsigned int compile_shader(unsigned int type, const std::string& source) {
@@ -138,19 +117,27 @@ static void glfw_error_callback(int error, const char* description) {
 	whim::Logger::log(errorMessage);
 }
 
-// TODO: Move these keymappings to use set key callback from opengl
-//static void process_inputs(GLFWwindow* window, GLuint shaderProgram, float rot) {
-//
-//	if (glfwGetKey(window, 65) == GLFW_PRESS) {
-//		rot -= 0.001f;
-//		rotate(shaderProgram, rot);
-//	}
-//
-//	if (glfwGetKey(window, 68) == GLFW_PRESS) {
-//		rot += 0.001f;
-//		rotate(shaderProgram, rot);
-//	}
-//}
+
+static double lastTime = glfwGetTime();
+double getDeltaTime() {
+	double deltaTime = glfwGetTime() - lastTime;
+	lastTime = glfwGetTime();
+	return deltaTime;
+}
+
+void processInput(GLFWwindow* window, Scene* scene) {
+	float cameraSpeed = 2.5f * getDeltaTime();
+
+	Camera* cam = scene->getCamera();
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cam->cameraPos += cameraSpeed * cam->cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cam->cameraPos -= cameraSpeed * cam->cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cam->cameraPos -= glm::normalize(glm::cross(cam->cameraFront, cam->cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cam->cameraPos += glm::normalize(glm::cross(cam->cameraFront, cam->cameraUp)) * cameraSpeed;
+}
 
 int main(void)
 {
@@ -222,40 +209,40 @@ int main(void)
 
 	whim::Vertex vertices[] = {
 		// Front face
-		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.5f)},
 
 		// Back face
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
 
 		// Left face
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
 
 		// Right face
-		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
 
 		// Top face
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.5f)},
 
 		// Bottom face
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(1.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.5f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
 	};
 
 	unsigned int indices[] = {
@@ -300,7 +287,6 @@ int main(void)
 	// Texcoord attrib pointer
 	cubeVAO.setAttributePointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
-	cubeVBO.logVBOData();
 	// Create ebo
 	whim::EBO cubeEBO;
 	cubeEBO.setData(std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0])));
@@ -315,9 +301,10 @@ int main(void)
 	// Set background color
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
+	//* MOVE THIS CODE SOMEWHERE INTO THE ASSET LOADER
 	// Loading a texture
 	int width, height, nrChannels;
-	unsigned char* textureData = stbi_load("test_texture.png", &width, &height, &nrChannels, 0);
+	unsigned char* textureData = stbi_load("assets/textures/cobble.png", &width, &height, &nrChannels, 0);
 	if (!textureData) {
 		whim::Logger::log_error("Faled to load texture");
 	}
@@ -336,20 +323,31 @@ int main(void)
 	bool show_window = true;
 	glm::vec3 clear_color = glm::vec3(0.07f, 0.13f, 0.17f);
 
-	double lastTime = glfwGetTime();
-	double rotSpeed = 5;
-	double currentTime = 0.0;
-	double deltaTime = 0.0;
-	// 65 is A, 68 is D
 	float rotX = 0.001f;
 	float rotY = 0.001f;
 	float rotZ = 0.001f;
+
+	Camera cam = Camera();
+	Scene scene = Scene(&cam);
 
 	glfwSetKeyCallback(window, Input::read_inputs);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
-		glfwPollEvents();
+		// Process inputs/logic
+		processInput(window, &scene);
+
+		glUseProgram(shaderProgram);
+
+		glm::mat4 view = scene.getCamera()->generateViewMatrix();
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		glm::mat4 model = glm::mat4(1.0f); 
+		glm::mat4 mvp = projection * view * model;
+
+		// Pass the MVP matrix to the shader
+		GLuint mvpLocation = glGetUniformLocation(shaderProgram, "mvp");
+		glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+
 
 		// Start the dear imgui frame
 		ImGui_ImplOpenGL3_NewFrame();
@@ -370,9 +368,6 @@ int main(void)
 			ImGui::End();
 		}
 
-		// Process inputs/logic
-		rotate(shaderProgram, rotX, rotY, rotZ);
-
 		// Rendering
 		glClear(GL_COLOR_BUFFER_BIT);
 		// Update the clear color (incase we changed it from the debugger)
@@ -385,6 +380,7 @@ int main(void)
 		// Our draw calls
 		glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
 
+		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}
 	glDeleteProgram(shaderProgram);
