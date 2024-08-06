@@ -5,6 +5,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <gl/GL.h>
 #include "thirdparty/stb_image/stb_image.h"
 #include "core/logger/Logger.hpp"
 #include "core/input/Input.hpp"
@@ -12,13 +13,14 @@
 #include "core/asset-loader/ShaderAssets.hpp"
 #include "core/rendering/Vertex.h"
 #include <glm.hpp>
+#include <gtx/string_cast.hpp>
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
 #include "core/rendering/VBO.h"
 #include "core/rendering/EBO.hpp"
 #include "core/rendering/VAO.h"
 #include "core/rendering/Camera.hpp"
-#include "core/rendering/Scene.h"
+#include "core/game/Scene.h"
 
 using namespace whim;
 
@@ -39,6 +41,15 @@ void check_shader_compilation(unsigned int shader, const char* shaderType)
 	}
 }
 
+void print_matrix(const glm::mat4& matrix) {
+	for (int row = 0; row < 4; ++row) {
+		for (int col = 0; col < 4; ++col) {
+			std::cout << matrix[col][row] << " ";
+		}
+		std::cout << std::endl;
+	}
+}
+
 void check_program_linking(unsigned int program)
 {
 	int success;
@@ -51,18 +62,6 @@ void check_program_linking(unsigned int program)
 	}
 }
 
-void rotate(unsigned int shaderProgram, float angleX, float angleY, float angleZ) {
-	glUseProgram(shaderProgram);
-	unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-
-	// Create a rotation matrix combining all axes
-	glm::mat4 trans = glm::rotate(glm::mat4(1.0f), float(angleX * pi / 180.f), glm::vec3(1.0f, 0.0f, 0.0f));
-	trans = glm::rotate(trans, float(angleY * pi / 180.f), glm::vec3(0.0f, 1.0f, 0.0f));
-	trans = glm::rotate(trans, float(angleZ * pi / 180.f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-	// Send transformation matrix to the GPU
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-}
 
 static unsigned int compile_shader(unsigned int type, const std::string& source) {
 	unsigned int id = glCreateShader(type);
@@ -125,19 +124,7 @@ double getDeltaTime() {
 	return deltaTime;
 }
 
-void processInput(GLFWwindow* window, Scene* scene) {
-	float cameraSpeed = 2.5f * getDeltaTime();
 
-	Camera* cam = scene->getCamera();
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cam->cameraPos += cameraSpeed * cam->cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cam->cameraPos -= cameraSpeed * cam->cameraFront;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cam->cameraPos -= glm::normalize(glm::cross(cam->cameraFront, cam->cameraUp)) * cameraSpeed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cam->cameraPos += glm::normalize(glm::cross(cam->cameraFront, cam->cameraUp)) * cameraSpeed;
-}
 
 int main(void)
 {
@@ -197,28 +184,30 @@ int main(void)
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
-	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
 	// Specify viewport of OpenGL in the window
-	glViewport(0, 0, 800, 800);
+	glViewport(0, 0, 1920, 1080);
+
+	// Set up clipping plane
+	// https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/glClipPlane.xml
+
 	// Specify background color
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 	// Clear the color buffer and assign the new color to it
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window);
-
 	whim::Vertex vertices[] = {
 		// Front face
-		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.5f)},
+		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)}, // bottom right
+		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(1.0f, 0.0f)}, // bottom left
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 1.0f)}, // top right
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(1.0f, 1.0f)}, // top left
 
 		// Back face
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
+		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.5f)},
 
 		// Left face
 		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
@@ -233,10 +222,10 @@ int main(void)
 		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
 
 		// Top face
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.5f, 0.5f)},
+		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
+		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
+		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.5f)},
 
 		// Bottom face
 		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
@@ -245,7 +234,7 @@ int main(void)
 		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
 	};
 
-	unsigned int indices[] = {
+	GLuint indices[] = {
 		// Front face indices
 		0, 1, 2,
 		2, 1, 3,
@@ -297,19 +286,19 @@ int main(void)
 
 	// Specify shader program
 	glUseProgram(shaderProgram);
-
 	// Set background color
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
 	//* MOVE THIS CODE SOMEWHERE INTO THE ASSET LOADER
 	// Loading a texture
 	int width, height, nrChannels;
-	unsigned char* textureData = stbi_load("assets/textures/cobble.png", &width, &height, &nrChannels, 0);
+	unsigned char* textureData = stbi_load("assets/textures/grass-block.jpg", &width, &height, &nrChannels, 0);
 	if (!textureData) {
 		whim::Logger::log_error("Faled to load texture");
 	}
 	else {
 		whim::Logger::log("Loaded texture");
+		whim::Logger::log("Texture dimensions: " + std::to_string(width) + "x" + std::to_string(height) + "," + std::to_string(nrChannels));
 	}
 
 	unsigned int texture;
@@ -321,27 +310,31 @@ int main(void)
 
 	// UI state
 	bool show_window = true;
-	glm::vec3 clear_color = glm::vec3(0.07f, 0.13f, 0.17f);
+	glm::vec3 clear_color = glm::vec3(0.12f, 0.083f, 0.105f);
 
 	float rotX = 0.001f;
 	float rotY = 0.001f;
 	float rotZ = 0.001f;
 
 	Camera cam = Camera();
-	Scene scene = Scene(&cam);
+	Input input = Input();
 
-	glfwSetKeyCallback(window, Input::read_inputs);
+	Scene scene = Scene();
+
+	scene.register_camera(&cam);
+	scene.register_input(&input);
+	glfwSetKeyCallback()
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		// Process inputs/logic
-		processInput(window, &scene);
+		scene.process_input()
 
 		glUseProgram(shaderProgram);
 
 		glm::mat4 view = scene.getCamera()->generateViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-		glm::mat4 model = glm::mat4(1.0f); 
+		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 mvp = projection * view * model;
 
 		// Pass the MVP matrix to the shader
@@ -358,9 +351,7 @@ int main(void)
 			ImGui::Begin("Whim Debugger");
 
 			ImGui::Text("Transform");
-			ImGui::SliderFloat("rotation X", &rotX, 0.0f, 360);
-			ImGui::SliderFloat("rotation Y", &rotY, 0.0f, 360);
-			ImGui::SliderFloat("rotation Z", &rotZ, 0.0f, 360);
+			ImGui::Text(("Matrix" + glm::to_string(mvp)).c_str());
 
 			ImGui::ColorEdit3("clear color", glm::value_ptr(clear_color));
 
@@ -378,6 +369,7 @@ int main(void)
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// Our draw calls
+		// https://docs.gl/gl3/glDrawElements
 		glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
 
 		glfwPollEvents();

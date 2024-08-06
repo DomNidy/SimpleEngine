@@ -14,7 +14,7 @@ namespace whim {
 		/// vertices from world space to camera space.
 		/// </summary>
 		/// <returns></returns>
-		glm::mat4 generateViewMatrix();
+		glm::mat4 generateViewMatrix() const;
 
 		// Store current position of camera in world space
 		glm::vec3 cameraPos;

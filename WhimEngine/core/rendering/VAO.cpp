@@ -25,7 +25,7 @@ namespace whim {
 	void VAO::setAttributePointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer)
 	{
 		bind();
-		glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 		glEnableVertexAttribArray(index);
+		glVertexAttribPointer(index, size, type, normalized, stride, pointer);
 	}
 }
