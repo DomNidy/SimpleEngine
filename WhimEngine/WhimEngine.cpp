@@ -317,29 +317,29 @@ int main(void)
 	float rotZ = 0.001f;
 
 	Camera cam = Camera();
-	Input input = Input();
+	Input input = Input(window);
 
 	Scene scene = Scene();
 
 	scene.register_camera(&cam);
 	scene.register_input(&input);
-	glfwSetKeyCallback()
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		// Process inputs/logic
-		scene.process_input()
+		scene.tick();
 
 		glUseProgram(shaderProgram);
 
-		glm::mat4 view = scene.getCamera()->generateViewMatrix();
+		/*glm::mat4 view = scene.getCamera()->generateViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 mvp = projection * view * model;
+		glm::mat4 mvp = projection * view * model;*/
 
 		// Pass the MVP matrix to the shader
 		GLuint mvpLocation = glGetUniformLocation(shaderProgram, "mvp");
-		glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+		//glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
 
 		// Start the dear imgui frame
@@ -351,7 +351,7 @@ int main(void)
 			ImGui::Begin("Whim Debugger");
 
 			ImGui::Text("Transform");
-			ImGui::Text(("Matrix" + glm::to_string(mvp)).c_str());
+			//ImGui::Text(("Matrix" + glm::to_string(mvp)).c_str());
 
 			ImGui::ColorEdit3("clear color", glm::value_ptr(clear_color));
 

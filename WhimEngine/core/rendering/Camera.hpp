@@ -1,6 +1,7 @@
 #pragma once
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include "../game/Scene.h"
 
 namespace whim {
 	class Camera
@@ -33,12 +34,25 @@ namespace whim {
 		/// </summary>
 		glm::vec3 cameraUp;
 
+		/// <summary>
+		/// When the observed Input issues a command, transform the camera in accordance
+		/// </summary>
+		/// <param name="command"></param>
+		void process_input_command(KbdInputCommand command);
+
+		/// <summary>
+		/// The scene that has registered this Camera
+		/// </summary>
+		Scene* _scene;
+
 		float yaw = -90.f;
 		float pitch = 0.0f;
 
 		float lastX = 800.0f / 2.0f;
 		float lastY = 600.0f / 2.0f;
 		bool firstMouse = true;
+
+
 	};
 
 }

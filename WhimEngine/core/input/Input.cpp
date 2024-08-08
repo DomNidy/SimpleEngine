@@ -1,34 +1,47 @@
 #include "Input.hpp"
-#include "../game/Scene.h"
 #include <glm.hpp>
 
-
 namespace whim {
-
-
-
-
-	Input::Input() {
-		Input::input_command_map[GLFW_KEY_W] = InputCommand::MOVE_FWD;
-		Input::input_command_map[GLFW_KEY_A] = InputCommand::MOVE_LEFT;
-		Input::input_command_map[GLFW_KEY_S] = InputCommand::MOVE_BACK;
-		Input::input_command_map[GLFW_KEY_D] = InputCommand::MOVE_RIGHT;
+	Input::Input(GLFWwindow* window) {
+		kbd_input_command_map[MOVE_FWD] = GLFW_KEY_W;
+		kbd_input_command_map[MOVE_LEFT] = GLFW_KEY_A;
+		kbd_input_command_map[MOVE_BACK] = GLFW_KEY_S;
+		kbd_input_command_map[MOVE_RIGHT] = GLFW_KEY_D;
+		this->window = window;
 	}
-	void Input::process_input(GLFWwindow* window,  Camera* camera, float delta_time, int key, int scancode, int action, int mods)
-	{
-		// getDeltaTime() is a non const method, but we have a const Scene pointer
-		// meaning we cant call any methods that are non const
-		constexpr float moveSpeed = 1.5f;
-		constexpr float turnSpeed = 100.0f;
 
-		// Get input for movement
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			camera->cameraPos += moveSpeed * delta_time * camera->cameraFront;
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			camera->cameraPos -= moveSpeed * delta_time * camera->cameraFront;
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			camera->cameraPos -= glm::normalize(glm::cross(camera->cameraFront, camera->cameraUp)) * moveSpeed * delta_time;
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			camera->cameraPos += glm::normalize(glm::cross(camera->cameraFront, camera->cameraUp)) * moveSpeed * delta_time;
+	Input::Input() : window(nullptr) {}
+
+	void Input::process_input()
+	{
+
+		// Check if W key was pressed
+		if (glfwGetKey(this->window, kbd_input_command_map[MOVE_FWD]) == GLFW_PRESS) {
+			notify_observers(MOVE_FWD);
+		}
+		if (glfwGetKey(this->window, kbd_input_command_map[MOVE_LEFT]) == GLFW_PRESS) {
+			notify_observers(MOVE_FWD);
+		}
+		if (glfwGetKey(this->window, kbd_input_command_map[MOVE_RIGHT]) == GLFW_PRESS) {
+			notify_observers(MOVE_RIGHT);
+		}
+		if (glfwGetKey(this->window, kbd_input_command_map[MOVE_BACK]) == GLFW_PRESS) {
+			notify_observers(MOVE_BACK);
+		}
+	}
+
+	void Input::notify_observers(KbdInputCommand command)
+	{
+		for (Camera* cam : this->observers) {
+			cam->process_input_command(command);
+		}
+	}
+
+	void Input::register_observer(Camera* camera) {
+		this->observers.push_back(camera);
+	}
+
+	void Input::unregister_observer(Camera* camera) {
+		this->observers.erase(std::remove(observers.begin(), observers.end(), camera));
 	}
 }

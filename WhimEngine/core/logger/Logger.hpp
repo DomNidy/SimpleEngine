@@ -23,11 +23,12 @@ namespace whim
 	class Logger
 	{
 	public:
-		static void log(const std::string &message);
-		static void log_error(const std::string &message);
+		static void log(const std::string& message);
+		static void log_error(const std::string& message);
+		static void log_warning(const std::string& message);
 
 		// Changes the logger prefix (NOTE: A space is automatically added to the end of the prefix)
-		static void set_logger_prefix(const std::string &prefix);
+		static void set_logger_prefix(const std::string& prefix);
 
 		// Updates color of logger prefix
 		static void set_prefix_color(WORD color_attribute);
@@ -42,6 +43,8 @@ namespace whim
 		static WORD color_attribute_;
 		// Stores windows color flag for prefix when logging an error message
 		static WORD color_attribute_error_;
+		// Stores warning color flag
+		static WORD color_attribute_warn_;
 		// Pointer to console handle
 		static HANDLE hConsole_;
 		// The log message

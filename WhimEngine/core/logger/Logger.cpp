@@ -5,6 +5,7 @@ namespace whim {
 	logger_level Logger::level_ = HIGH_VERBOSITY;
 	WORD Logger::color_attribute_ = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
 	WORD Logger::color_attribute_error_ = FOREGROUND_RED | FOREGROUND_INTENSITY;
+	WORD Logger::color_attribute_warn_ = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
 	HANDLE Logger::hConsole_ = GetStdHandle(STD_OUTPUT_HANDLE);
 	std::string Logger::logger_prefix_ = "[WHIM LOGGER]: ";
 	std::vector<std::string> Logger::messages_;
@@ -41,6 +42,17 @@ namespace whim {
 		SetConsoleTextAttribute(hConsole_, color_attribute_error_);
 		std::cout << logger_prefix_ << log_entry << std::endl;
 	}
+
+	void Logger::log_warning(const std::string& message)
+	{
+		std::string log_entry = get_timestamp_string() + "WARNING: " + message;
+		messages_.push_back(log_entry);
+
+		// Apply coloring for the prefix and write prefix
+		SetConsoleTextAttribute(hConsole_, color_attribute_warn_);
+		std::cout << logger_prefix_ << log_entry << std::endl;
+	}
+
 
 	void Logger::set_logger_prefix(const std::string& prefix)
 	{
