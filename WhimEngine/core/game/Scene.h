@@ -1,12 +1,12 @@
 #pragma once
-#include "../rendering/Camera.hpp"
-#include "../input/Input.hpp"
 
-
-// TODO: Resolve circular imports
+struct GLFWwindow;
 
 namespace whim {
 
+	// Forward declarations
+	class Camera;
+	class Input;
 	class Scene
 	{
 	public:
@@ -24,7 +24,6 @@ namespace whim {
 		/// <param name="camera"></param>
 		void register_input(Input* input);
 
-
 		/// <summary>
 		/// The main function which processes events for the scene
 		/// </summary>
@@ -34,11 +33,10 @@ namespace whim {
 		/// Returns delta time for scene
 		/// </summary>
 		/// <returns></returns>
-		double get_delta_time() const {
-			double deltaTime = glfwGetTime() - lastTime;
-			return deltaTime;
-		}
-
+		double get_delta_time() const;
+		
+		const Camera* get_camera() const;
+		const Input* get_input() const;
 	private:
 		/// <summary>
 		/// The active camera rendering out the Scene
@@ -55,9 +53,14 @@ namespace whim {
 		/// <summary>
 		/// Returns the time the last frame rendered at
 		/// </summary>
-		double lastTime = glfwGetTime();
+		double last_time;
 
+		/// <summary>
+		/// The time since last frame
+		/// </summary>
+		double delta_time;
 
+		void update_delta_time();
 	};
 
 }

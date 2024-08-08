@@ -16,8 +16,8 @@
 #include <gtx/string_cast.hpp>
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
-#include "core/rendering/VBO.h"
 #include "core/rendering/EBO.hpp"
+#include "core/rendering/VBO.h"
 #include "core/rendering/VAO.h"
 #include "core/rendering/Camera.hpp"
 #include "core/game/Scene.h"
@@ -41,14 +41,6 @@ void check_shader_compilation(unsigned int shader, const char* shaderType)
 	}
 }
 
-void print_matrix(const glm::mat4& matrix) {
-	for (int row = 0; row < 4; ++row) {
-		for (int col = 0; col < 4; ++col) {
-			std::cout << matrix[col][row] << " ";
-		}
-		std::cout << std::endl;
-	}
-}
 
 void check_program_linking(unsigned int program)
 {
@@ -114,14 +106,6 @@ static int create_shader(const std::string& vertexShader, const std::string& fra
 static void glfw_error_callback(int error, const char* description) {
 	std::string errorMessage = "CALLBACK Error " + std::to_string(error) + ": " + description;
 	whim::Logger::log(errorMessage);
-}
-
-
-static double lastTime = glfwGetTime();
-double getDeltaTime() {
-	double deltaTime = glfwGetTime() - lastTime;
-	lastTime = glfwGetTime();
-	return deltaTime;
 }
 
 
@@ -317,9 +301,13 @@ int main(void)
 	float rotZ = 0.001f;
 
 	Camera cam = Camera();
+	// Read inputs from window
 	Input input = Input(window);
-
+	
 	Scene scene = Scene();
+
+	// cam will respond to inputs from input
+	input.register_observer(&cam);
 
 	scene.register_camera(&cam);
 	scene.register_input(&input);
@@ -332,15 +320,14 @@ int main(void)
 
 		glUseProgram(shaderProgram);
 
-		/*glm::mat4 view = scene.getCamera()->generateViewMatrix();
+		glm::mat4 view = scene.get_camera()->generate_view_matrix();
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 		glm::mat4 model = glm::mat4(1.0f);
-		glm::mat4 mvp = projection * view * model;*/
+		glm::mat4 mvp = projection * view * model;
 
 		// Pass the MVP matrix to the shader
 		GLuint mvpLocation = glGetUniformLocation(shaderProgram, "mvp");
-		//glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
-
+		glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
 		// Start the dear imgui frame
 		ImGui_ImplOpenGL3_NewFrame();

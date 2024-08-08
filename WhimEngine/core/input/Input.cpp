@@ -8,9 +8,15 @@ namespace whim {
 		kbd_input_command_map[MOVE_BACK] = GLFW_KEY_S;
 		kbd_input_command_map[MOVE_RIGHT] = GLFW_KEY_D;
 		this->window = window;
+		this->_scene = nullptr;
 	}
 
-	Input::Input() : window(nullptr) {}
+	Input::Input() : window(nullptr), _scene(nullptr) {
+		kbd_input_command_map[MOVE_FWD] = GLFW_KEY_W;
+		kbd_input_command_map[MOVE_LEFT] = GLFW_KEY_A;
+		kbd_input_command_map[MOVE_BACK] = GLFW_KEY_S;
+		kbd_input_command_map[MOVE_RIGHT] = GLFW_KEY_D;
+	}
 
 	void Input::process_input()
 	{
@@ -20,7 +26,7 @@ namespace whim {
 			notify_observers(MOVE_FWD);
 		}
 		if (glfwGetKey(this->window, kbd_input_command_map[MOVE_LEFT]) == GLFW_PRESS) {
-			notify_observers(MOVE_FWD);
+			notify_observers(MOVE_LEFT);
 		}
 		if (glfwGetKey(this->window, kbd_input_command_map[MOVE_RIGHT]) == GLFW_PRESS) {
 			notify_observers(MOVE_RIGHT);

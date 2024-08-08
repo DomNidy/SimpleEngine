@@ -2,8 +2,12 @@
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include "../game/Scene.h"
+#include "../input/InputCommand.hpp"
 
 namespace whim {
+
+	class Scene;
+
 	class Camera
 	{
 
@@ -15,7 +19,7 @@ namespace whim {
 		/// vertices from world space to camera space.
 		/// </summary>
 		/// <returns></returns>
-		glm::mat4 generateViewMatrix() const;
+		glm::mat4 generate_view_matrix() const;
 
 		// Store current position of camera in world space
 		glm::vec3 cameraPos;
