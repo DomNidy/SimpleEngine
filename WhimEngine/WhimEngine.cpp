@@ -21,101 +21,18 @@
 #include "core/rendering/VAO.h"
 #include "core/rendering/Camera.hpp"
 #include "core/game/Scene.h"
+#include "core/util/Util.hpp"
 
 using namespace whim;
 
 constexpr double pi = 3.14159265358979323846;
 constexpr double e = 2.71828182845904523536;
 
-void check_shader_compilation(unsigned int shader, const char* shaderType)
-{
-	int success;
-	char infoLog[512];
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::string logErrorStr = shaderType;
-		logErrorStr += "::COMPILATION_FAILED\n";
-		Logger::log_error(logErrorStr);
-		Logger::log_error(infoLog);
-	}
-}
-
-
-void check_program_linking(unsigned int program)
-{
-	int success;
-	char infoLog[512];
-	glGetProgramiv(program, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(program, 512, NULL, infoLog);
-		Logger::log_error("ERROR::SHADER_PROGRAM::LINKING_FAILED\n");
-		Logger::log_error(infoLog);
-	}
-}
-
-
-static unsigned int compile_shader(unsigned int type, const std::string& source) {
-	unsigned int id = glCreateShader(type);
-	const char* src = source.c_str();
-	glShaderSource(id, 1, &src, nullptr);
-	glCompileShader(id);
-
-	// TODO: Handle errors here
-	int result;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-	if (result == GL_FALSE) {
-		int length;
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		char* message = (char*)_malloca(length * sizeof(char));
-
-		if (message != nullptr) {
-			glGetShaderInfoLog(id, length, &length, message);
-			Logger::log_error(message);
-		}
-		else {
-			Logger::log_error("Failed to allocate memory for shader compilation error info log.");
-		}
-
-		Logger::log_error("Failed to compile " + (type == GL_VERTEX_SHADER ? std::string("vertex") : std::string("fragment")) + " shader!");
-		glDeleteShader(id);
-	}
-
-	return id;
-}
-
-// Returns id of the shader program created
-static int create_shader(const std::string& vertexShader, const std::string& fragmentShader) {
-	unsigned int program = glCreateProgram();
-	unsigned int vs = compile_shader(GL_VERTEX_SHADER, vertexShader);
-	unsigned int fs = compile_shader(GL_FRAGMENT_SHADER, fragmentShader);
-
-	// Attatch shader to shader program & link program
-	glAttachShader(program, vs);
-	glAttachShader(program, fs);
-	glLinkProgram(program);
-	glValidateProgram(program);
-
-	// Free memory allocated to shader as they've been linked
-	glDeleteShader(vs);
-	glDeleteShader(fs);
-
-	return program;
-}
-
-static void glfw_error_callback(int error, const char* description) {
-	std::string errorMessage = "CALLBACK Error " + std::to_string(error) + ": " + description;
-	whim::Logger::log(errorMessage);
-}
-
-
 
 int main(void)
 {
+	glfwSetErrorCallback(Util::glfw_error_callback);
 
-	glfwSetErrorCallback(glfw_error_callback);
-
-	GLFWwindow* window;
 	/* Initialize the glfw */
 	if (!glfwInit()) {
 		Logger::log_error("Failed to initialize glfw.");
@@ -130,8 +47,15 @@ int main(void)
 	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	int monitor_width, monitor_height;
+	glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &monitor_width, &monitor_height);
+
+	Logger::log("Dimensions of primary monitor: " + std::to_string(monitor_width) + "x" + std::to_string(monitor_height));
+
+	GLFWwindow* window;
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(1280, 720, "Whim Engine", NULL, NULL);
+	window = glfwCreateWindow(monitor_width, monitor_height, "Whim Engine", monitor, NULL);
 
 	if (!window)
 	{
@@ -180,7 +104,7 @@ int main(void)
 	// Clear the color buffer and assign the new color to it
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window);
-	whim::Vertex vertices[] = {
+	std::vector<whim::Vertex> vertices = {
 		// Front face
 		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)}, // bottom right
 		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(1.0f, 0.0f)}, // bottom left
@@ -218,7 +142,7 @@ int main(void)
 		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
 	};
 
-	GLuint indices[] = {
+	std::vector<GLuint> indices = {
 		// Front face indices
 		0, 1, 2,
 		2, 1, 3,
@@ -249,23 +173,24 @@ int main(void)
 	whim::VAO cubeVAO;
 	cubeVAO.bind();
 
+	
 	// Create vbo
 	whim::VBO cubeVBO;
-	cubeVBO.setData(std::vector<whim::Vertex>(vertices, vertices + 24));
+	cubeVBO.set_data(vertices, GL_STATIC_DRAW);
 
 	// Position attrib pointer
-	cubeVAO.setAttributePointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	cubeVAO.set_attribute_pointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	// Color attrib pointer
-	cubeVAO.setAttributePointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	cubeVAO.set_attribute_pointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	// Texcoord attrib pointer
-	cubeVAO.setAttributePointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	cubeVAO.set_attribute_pointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
 	// Create ebo
 	whim::EBO cubeEBO;
-	cubeEBO.setData(std::vector<unsigned int>(indices, indices + sizeof(indices) / sizeof(indices[0])));
+	cubeEBO.set_data(indices, GL_STATIC_DRAW);
 
 	// Creating and compiling shaders
-	unsigned int shaderProgram = create_shader(whim::Assets::Shaders::default_vertex.shader_string,
+	unsigned int shaderProgram = Util::create_shader(whim::Assets::Shaders::default_vertex.shader_string,
 		whim::Assets::Shaders::default_fragment.shader_string);
 
 	// Specify shader program

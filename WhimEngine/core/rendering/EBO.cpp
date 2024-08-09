@@ -10,7 +10,7 @@ namespace whim {
 		glDeleteBuffers(1, &id);
 	}
 
-	void EBO::bind() {
+	void EBO::bind() const {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
 	}
 
@@ -18,8 +18,8 @@ namespace whim {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	void EBO::setData(const std::vector<unsigned int> data) {
+	void EBO::set_data(const std::vector<unsigned int> data, GLenum usage) {
 		bind();
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.size() * sizeof(float), data.data(), usage);
 	}
 }

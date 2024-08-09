@@ -1,5 +1,4 @@
 #pragma once
-#include <glad/glad.h>
 #include <iostream>
 #include <sstream>
 #include <cstdint>
@@ -7,7 +6,6 @@
 #include <Windows.h>
 #include <vector>
 #include <string>
-#include "logger.hpp"
 #include <chrono>
 #include <ctime>
 

@@ -21,8 +21,7 @@ namespace whim {
 		glBindVertexArray(0);
 	}
 
-	// Configures vertex attribute layouts for currently bound VBOS
-	void VAO::setAttributePointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer)
+	void VAO::set_attribute_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer)
 	{
 		bind();
 		glEnableVertexAttribArray(index);

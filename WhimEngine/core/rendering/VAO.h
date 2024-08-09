@@ -10,6 +10,10 @@ namespace whim {
 		GLuint id;
 
 	public:
+		/// <summary>
+		/// A VAO is an OpenGL object that stores the state of a set of vertex arrays, 
+		/// including the vertex data, indices, and other relevant information.
+		/// </summary>
 		VAO();
 		~VAO();
 
@@ -17,9 +21,12 @@ namespace whim {
 
 		void unbind() const;
 
-		// Specify the vertex attribute pointers
-		// https://docs.gl/gl3/glVertexAttribPointer
-		void setAttributePointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer);
+		/// <summary>
+		/// Specify the format and location of the vertex data in the currently bound VBO
+		/// This will determine how shader programs read the vertex data
+		/// https://docs.gl/gl3/glVertexAttribPointer
+		/// </summary>
+		void set_attribute_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer);
 
 	};
 }

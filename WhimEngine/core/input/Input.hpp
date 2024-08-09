@@ -65,7 +65,7 @@ namespace whim {
 		/// </summary>
 		void process_input_mouse();
 
-		MousePosition current_pos = {0.0f, 0.0f};
+		MousePosition current_pos = {640.f, 350.0f};
 		MousePosition delta_pos = { 0.0f, 0.0f };
 	};
 }
