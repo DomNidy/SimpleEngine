@@ -24,6 +24,7 @@ namespace whim {
 
 		float delta_time = _scene->get_delta_time();
 
+
 		switch (command) {
 		case MOVE_FWD:
 			cameraPos += moveSpeed * delta_time * cameraFront;
@@ -39,4 +40,27 @@ namespace whim {
 		}
 
 	}
+
+	void Camera::process_mouse_movement(float x_offset, float y_offset)
+	{
+		yaw += x_offset * 0.1f;
+		pitch += y_offset * 0.1f;
+
+		// Make sure we don't flip
+		if (pitch > 89.0f) pitch = 89.0f;
+		if (pitch < -89.0f) pitch = -89.0f;
+
+		update_camera_vectors();
+	}
+
+	void Camera::update_camera_vectors()
+	{
+		glm::vec3 fwd;
+		fwd.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		fwd.y = sin(glm::radians(pitch));
+		fwd.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		cameraFront = glm::normalize(fwd);
+	}
+
+
 }

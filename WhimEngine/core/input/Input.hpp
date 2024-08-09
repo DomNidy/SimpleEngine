@@ -7,6 +7,11 @@
 #include <GLFW/glfw3.h>
 #include "InputCommand.hpp"
 
+struct MousePosition {
+	float x;
+	float y;
+};
+
 namespace whim {
 
 	class Input
@@ -48,6 +53,20 @@ namespace whim {
 		/// </summary>
 		/// <param name="command"></param>
 		void notify_observers(KbdInputCommand command);
+
+		/// <summary>
+		/// Notify all cameras observing this Input, that a mouse movement event occured
+		/// </summary>
+		/// <param name="command"></param>
+		void notify_observers(float x_offset, float y_offset);
+
+		/// <summary>
+		/// Update mouse position
+		/// </summary>
+		void process_input_mouse();
+
+		MousePosition current_pos = {0.0f, 0.0f};
+		MousePosition delta_pos = { 0.0f, 0.0f };
 	};
 }
 

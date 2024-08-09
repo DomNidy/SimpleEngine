@@ -20,6 +20,11 @@ namespace whim {
 
 	void Input::process_input()
 	{
+		process_input_mouse();
+
+		// TODO: Refactor this notify method to use command pattern
+		// We are just calling the overload which rotates the camera
+		notify_observers(delta_pos.x, delta_pos.y);
 
 		// Check if W key was pressed
 		if (glfwGetKey(this->window, kbd_input_command_map[MOVE_FWD]) == GLFW_PRESS) {
@@ -36,11 +41,30 @@ namespace whim {
 		}
 	}
 
+	// TODO: Refactor to command pattern
 	void Input::notify_observers(KbdInputCommand command)
 	{
-		for (Camera* cam : this->observers) {
+		for (Camera* cam : observers) {
 			cam->process_input_command(command);
 		}
+	}
+
+	// TODO: Refactor to command pattern
+	void Input::notify_observers(float x_offset, float y_offset) {
+		for (Camera* cam : observers) {
+			cam->process_mouse_movement(x_offset, -y_offset);
+		}
+	}
+
+	void Input::process_input_mouse()
+	{
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		delta_pos.x = xpos - current_pos.x;
+		delta_pos.y = ypos - current_pos.y;
+
+		current_pos.x = xpos;
+		current_pos.y = ypos;
 	}
 
 	void Input::register_observer(Camera* camera) {

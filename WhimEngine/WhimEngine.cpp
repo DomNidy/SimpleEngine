@@ -296,21 +296,17 @@ int main(void)
 	bool show_window = true;
 	glm::vec3 clear_color = glm::vec3(0.12f, 0.083f, 0.105f);
 
-	float rotX = 0.001f;
-	float rotY = 0.001f;
-	float rotZ = 0.001f;
-
-	Camera cam = Camera();
 	// Read inputs from window
-	Input input = Input(window);
-	
 	Scene scene = Scene();
+	Input input = Input(window);
+	Camera cam = Camera();
 
 	// cam will respond to inputs from input
 	input.register_observer(&cam);
 
 	scene.register_camera(&cam);
 	scene.register_input(&input);
+
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))

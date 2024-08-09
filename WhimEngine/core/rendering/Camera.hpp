@@ -45,6 +45,11 @@ namespace whim {
 		void process_input_command(KbdInputCommand command);
 
 		/// <summary>
+		/// Rotate the camera depending on mouse pos
+		/// </summary>
+		void process_mouse_movement(float x_offset, float y_offst);
+
+		/// <summary>
 		/// The scene that has registered this Camera
 		/// </summary>
 		Scene* _scene;
@@ -56,7 +61,11 @@ namespace whim {
 		float lastY = 600.0f / 2.0f;
 		bool firstMouse = true;
 
-
+	private:
+		/// <summary>
+		/// Recompute the forward and up vectors in response to rotation
+		/// </summary>
+		void update_camera_vectors();
 	};
 
 }
