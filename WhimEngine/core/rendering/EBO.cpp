@@ -6,8 +6,12 @@ namespace whim {
 		glGenBuffers(1, &id);
 	}
 
-	EBO::~EBO() {
+
+
+	bool EBO::delete_buffer() {
+		Logger::log("Deleting EBO with id " + std::to_string(id));
 		glDeleteBuffers(1, &id);
+		return true;
 	}
 
 	void EBO::bind() const {

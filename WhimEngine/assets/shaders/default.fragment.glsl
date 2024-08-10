@@ -2,7 +2,6 @@
 in vec3 fragColor;
 in vec2 TexCoord;
 
-uniform float Time;
 uniform sampler2D ourTexture;
 
 out vec4 FragColor;

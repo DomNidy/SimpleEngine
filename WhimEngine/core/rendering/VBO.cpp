@@ -11,8 +11,11 @@ namespace whim {
 		glGenBuffers(1, &id);
 	}
 
-	VBO::~VBO() {
+
+	bool VBO::delete_buffer() {
+		Logger::log("Deleting VBO with id " + std::to_string(id));
 		glDeleteBuffers(1, &id);
+		return true;
 	}
 
 	void VBO::bind() const
@@ -27,6 +30,12 @@ namespace whim {
 	void VBO::set_data(const std::vector<whim::Vertex>& data, GLenum usage) const {
 		bind();
 		glBufferData(target, data.size() * sizeof(whim::Vertex), data.data(), usage);
+	}
+
+	// TODO: Implement a set_data function that uses generics
+	void VBO::set_data(const std::vector<glm::mat4>& data, GLenum usage) const {
+		bind();
+		glBufferData(target, data.size() * sizeof(glm::mat4), data.data(), usage);
 	}
 
 	void VBO::log_vbo_data() const {

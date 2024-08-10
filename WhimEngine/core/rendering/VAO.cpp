@@ -8,9 +8,11 @@ namespace whim {
 		glGenVertexArrays(1, &id);
 	}
 
-	VAO::~VAO()
+	bool VAO::delete_vao()
 	{
+		Logger::log("Deleting VAO with id " + std::to_string(id));
 		glDeleteVertexArrays(1, &id);
+		return true;
 	}
 
 	void VAO::bind() {

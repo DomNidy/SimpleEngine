@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include "../logger/Logger.hpp"
 #include <string>
+#include <glm.hpp>
 
 namespace whim::Util {
 
@@ -10,4 +11,6 @@ namespace whim::Util {
 	unsigned int compile_shader(unsigned int type, const std::string& source);
 	int create_shader(const std::string& vertexShader, const std::string& fragmentShader);
 	void glfw_error_callback(int error, const char* description);
+
+	void print_mat4(const glm::mat4& matrix);
 }

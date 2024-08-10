@@ -168,26 +168,42 @@ int main(void)
 		22, 21, 23
 	};
 
-	// Creating VAO and binding it
-	// The vao encapsulates vbo and ebo
-	whim::VAO cubeVAO;
-	cubeVAO.bind();
+	const GLuint NUM_MESHES = 12;
+	VAO mesh_vaos[NUM_MESHES];
+	GLuint mesh_vertex_count[NUM_MESHES];
+	for (int i = 0; i < NUM_MESHES; i++) {
 
-	
-	// Create vbo
-	whim::VBO cubeVBO;
-	cubeVBO.set_data(vertices, GL_STATIC_DRAW);
+		VAO _vao = VAO();
+		_vao.bind();
+		mesh_vaos[i] = _vao;
 
-	// Position attrib pointer
-	cubeVAO.set_attribute_pointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	// Color attrib pointer
-	cubeVAO.set_attribute_pointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	// Texcoord attrib pointer
-	cubeVAO.set_attribute_pointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+		VBO _vbo = VBO();
+		// Since we copy the vertices by value with _vbo.set_data
+		// we effectively snapshot the vertex data at that time, 
+		// so we can update it each iteration to transform the verts easier. (just for testing)
+		for (int j = 0; j < vertices.size(); j++) {
+			if (i % 2 == 0) {
+				vertices[j].position.x += 1 + i;
 
-	// Create ebo
-	whim::EBO cubeEBO;
-	cubeEBO.set_data(indices, GL_STATIC_DRAW);
+			}
+			else {
+				vertices[j].position.y += 1 + i;
+			}
+		}
+
+		_vbo.set_data(vertices, GL_STATIC_DRAW);
+		mesh_vertex_count[i] = vertices.size();
+
+		EBO _ebo = EBO();
+		_ebo.set_data(indices, GL_STATIC_DRAW);
+
+		// Position attrib pointer
+		mesh_vaos[i].set_attribute_pointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		// Color attrib pointer
+		mesh_vaos[i].set_attribute_pointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		// Texcoord attrib pointer
+		mesh_vaos[i].set_attribute_pointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	}
 
 	// Creating and compiling shaders
 	unsigned int shaderProgram = Util::create_shader(whim::Assets::Shaders::default_vertex.shader_string,
@@ -257,7 +273,6 @@ int main(void)
 
 		if (show_window) {
 			ImGui::Begin("Whim Debugger");
-
 			ImGui::Text("Transform");
 			//ImGui::Text(("Matrix" + glm::to_string(mvp)).c_str());
 
@@ -278,7 +293,11 @@ int main(void)
 
 		// Our draw calls
 		// https://docs.gl/gl3/glDrawElements
-		glDrawElements(GL_TRIANGLES, sizeof(indices), GL_UNSIGNED_INT, 0);
+		for (int i = 0; i < NUM_MESHES; i++) {
+			//Logger::log("Binding " + std::to_string(mesh_vaos[i].id) + " with " + std::to_string(mesh_vertex_count[i]) + " verts.");
+			glBindVertexArray(mesh_vaos[i].id);
+			glDrawArrays(GL_TRIANGLES, 0, mesh_vertex_count[i]);
+		}
 
 		glfwPollEvents();
 		glfwSwapBuffers(window);

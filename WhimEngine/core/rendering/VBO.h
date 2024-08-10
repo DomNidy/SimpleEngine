@@ -8,8 +8,7 @@ namespace whim {
 
 	class VBO
 	{
-	private:
-		GLuint id;
+		
 
 	public:
 		/// <summary>
@@ -24,7 +23,14 @@ namespace whim {
 		/// </summary>
 		VBO();
 
-		~VBO();
+		// Opengl assigned id/name
+		GLuint id;
+
+		/// <summary>
+		/// Deletes the data stored in the buffer & allows it's name to be assigned to a new buffer
+		/// Returns true upon successful deletion
+		/// </summary>
+		bool delete_buffer();
 
 		/// <summary>
 		/// Binds the buffer to it's target
@@ -70,7 +76,7 @@ namespace whim {
 		///	COPY
 		///		The data store contents are modified by reading data from the GL, and used as the source for GL drawing and image specification commands.
 		void set_data(const std::vector<whim::Vertex>& data, GLenum usage) const;
-
+		void set_data(const std::vector<glm::mat4>& data, GLenum usage) const;
 		// Log out the data in the vbo
 		void log_vbo_data() const;
 	private:

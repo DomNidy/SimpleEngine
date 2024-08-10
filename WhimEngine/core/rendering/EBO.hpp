@@ -1,16 +1,15 @@
 #pragma once
 #include <vector>
 #include <glad/glad.h>
+#include "../logger/Logger.hpp"
 
 namespace whim {
 	class EBO
 	{
-	private:
-		GLuint id;
 	public:
 		EBO();
-		~EBO();
 
+		bool delete_buffer();
 
 		/// <summary>
 		/// Set data of this EBO
@@ -20,6 +19,9 @@ namespace whim {
 		void set_data(const std::vector<unsigned int> data, GLenum usage);
 		void bind() const;
 		void unbind() const;
+
+		// Opengl assigned id/name
+		GLuint id;
 	};
 }
 

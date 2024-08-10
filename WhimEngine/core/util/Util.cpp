@@ -83,4 +83,14 @@ namespace whim::Util {
 		whim::Logger::log(errorMessage);
 	}
 
+	void print_mat4(const glm::mat4& matrix)
+	{
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				std::cout << std::to_string(matrix[i][j]) + " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+
 }

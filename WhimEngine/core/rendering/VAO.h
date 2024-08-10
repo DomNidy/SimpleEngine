@@ -6,8 +6,7 @@
 
 namespace whim {
 	class VAO {
-	private:
-		GLuint id;
+		
 
 	public:
 		/// <summary>
@@ -15,7 +14,8 @@ namespace whim {
 		/// including the vertex data, indices, and other relevant information.
 		/// </summary>
 		VAO();
-		~VAO();
+
+		bool delete_vao();
 
 		void bind();
 
@@ -27,6 +27,10 @@ namespace whim {
 		/// https://docs.gl/gl3/glVertexAttribPointer
 		/// </summary>
 		void set_attribute_pointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer);
-
+		
+		/// <summary>
+		/// Id assigned to this vao by opengl (name)
+		/// </summary>
+		GLuint id;
 	};
 }
