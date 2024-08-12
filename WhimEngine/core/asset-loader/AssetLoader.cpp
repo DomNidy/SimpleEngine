@@ -32,5 +32,36 @@ namespace whim {
 		return shader_string;
 	}
 
+	ImageTextureData AssetLoader::load_texture_data_from_image(const std::string& texture_file_path)
+	{
+
+		int width, height, num_channels;
+		unsigned char* texture_data = stbi_load(texture_file_path.c_str(), &width, &height, &num_channels, 0);
+		if (!texture_data) {
+			whim::Logger::log_error("Faled to load texture from " + texture_file_path);
+		}
+		else {
+			whim::Logger::log("Loaded texture");
+			whim::Logger::log("Texture dimensions: " + std::to_string(width) + "x" + std::to_string(height) + "," + std::to_string(num_channels));
+		}
+
+		ImageTextureData image_data = ImageTextureData();
+		image_data.height = height;
+		image_data.width = width;
+		image_data.num_channels = num_channels;
+
+		return ImageTextureData();
+	}
+
 };
 
+void ImageTextureData::free_image()
+{
+	whim::Logger::log("Freeing texture data");
+	stbi_image_free(data);
+}
+
+ImageTextureData::~ImageTextureData()
+{
+	whim::Logger::log("Destructor");
+}

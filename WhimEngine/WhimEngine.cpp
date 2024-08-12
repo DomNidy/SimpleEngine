@@ -22,6 +22,7 @@
 #include "core/rendering/Camera.hpp"
 #include "core/game/Scene.h"
 #include "core/util/Util.hpp"
+#include "core/rendering/Voxel.h"
 
 using namespace whim;
 
@@ -55,7 +56,7 @@ int main(void)
 
 	GLFWwindow* window;
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(monitor_width, monitor_height, "Whim Engine", monitor, NULL);
+	window = glfwCreateWindow(monitor_width, monitor_height, "Whim Engine", NULL, NULL);
 
 	if (!window)
 	{
@@ -104,43 +105,7 @@ int main(void)
 	// Clear the color buffer and assign the new color to it
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window);
-	std::vector<whim::Vertex> vertices = {
-		// Front face
-		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)}, // bottom right
-		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(1.0f, 0.0f)}, // bottom left
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(0.0f, 1.0f)}, // top right
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f), glm::vec2(1.0f, 1.0f)}, // top left
 
-		// Back face
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.5f)},
-
-		// Left face
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
-
-		// Right face
-		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0.0f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
-
-		// Top face
-		{glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.5f, 0.5f)},
-
-		// Bottom face
-		{glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.0f)},
-		{glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.0f, 0.5f)},
-		{glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), glm::vec2(0.5f, 0.5f)},
-	};
 
 	std::vector<GLuint> indices = {
 		// Front face indices
@@ -168,41 +133,42 @@ int main(void)
 		22, 21, 23
 	};
 
-	const GLuint NUM_MESHES = 12;
+
+	const int CHUNK_W = 2, CHUNK_H = 2, CHUNK_D = 1;
+
+	const GLuint NUM_MESHES = CHUNK_W * CHUNK_H * CHUNK_D;
 	VAO mesh_vaos[NUM_MESHES];
 	GLuint mesh_vertex_count[NUM_MESHES];
-	for (int i = 0; i < NUM_MESHES; i++) {
+	for (int i = 0; i < CHUNK_W; i++) {
+		for (int j = 0; j < CHUNK_H; j++) {
+			for (int k = 0; k < CHUNK_D; k++) {
+				Voxel vox = Voxel(i, j, k);
 
-		VAO _vao = VAO();
-		_vao.bind();
-		mesh_vaos[i] = _vao;
+				VAO _vao = VAO();
+				_vao.bind();
+				mesh_vaos[i] = _vao;
 
-		VBO _vbo = VBO();
-		// Since we copy the vertices by value with _vbo.set_data
-		// we effectively snapshot the vertex data at that time, 
-		// so we can update it each iteration to transform the verts easier. (just for testing)
-		for (int j = 0; j < vertices.size(); j++) {
-			if (i % 2 == 0) {
-				vertices[j].position.x += 1 + i;
+				VBO _vbo = VBO();
 
-			}
-			else {
-				vertices[j].position.y += 1 + i;
+				_vbo.set_data(vox.verts, GL_STATIC_DRAW);
+				mesh_vertex_count[i] = vox.verts.size();
+
+				// Potential Issue: We are using the same index buffer for all VAOs,
+				// but we're not taking into account the offset of the vertex data in each vao
+				EBO _ebo = EBO();
+				_ebo.set_data(indices, GL_STATIC_DRAW);
+
+				int curr_vao_index = (CHUNK_W * CHUNK_H * i) + (CHUNK_H * j) + k;
+				Logger::log(std::to_string(curr_vao_index) + " " + std::to_string(i) + " " + std::to_string(j));
+				// TODO: Maybe our ebo needs to have an attribute pointer?
+				// Position attrib pointer
+				mesh_vaos[curr_vao_index].set_attribute_pointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+				// Color attrib pointer
+				mesh_vaos[curr_vao_index].set_attribute_pointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+				// Texcoord attrib pointer
+				mesh_vaos[curr_vao_index].set_attribute_pointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 			}
 		}
-
-		_vbo.set_data(vertices, GL_STATIC_DRAW);
-		mesh_vertex_count[i] = vertices.size();
-
-		EBO _ebo = EBO();
-		_ebo.set_data(indices, GL_STATIC_DRAW);
-
-		// Position attrib pointer
-		mesh_vaos[i].set_attribute_pointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		// Color attrib pointer
-		mesh_vaos[i].set_attribute_pointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-		// Texcoord attrib pointer
-		mesh_vaos[i].set_attribute_pointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	}
 
 	// Creating and compiling shaders
@@ -216,22 +182,19 @@ int main(void)
 
 	//* MOVE THIS CODE SOMEWHERE INTO THE ASSET LOADER
 	// Loading a texture
-	int width, height, nrChannels;
-	unsigned char* textureData = stbi_load("assets/textures/grass-block.jpg", &width, &height, &nrChannels, 0);
-	if (!textureData) {
-		whim::Logger::log_error("Faled to load texture");
-	}
-	else {
-		whim::Logger::log("Loaded texture");
-		whim::Logger::log("Texture dimensions: " + std::to_string(width) + "x" + std::to_string(height) + "," + std::to_string(nrChannels));
-	}
 
-	unsigned int texture;
+	// TODO: Memory leak issue here most likely
+	// We are create an ImageTextureData struct inside the function's stack frame, and returning a COPY of it
+	// This automatically calls the destructor for the struct that was made in the stack frame, but this destructor does not
+	// free the image data which is heap allocated.
+	// should result in an additional ~16kb of memory being used ?
+	ImageTextureData texture_data = whim::AssetLoader::load_texture_data_from_image("assets/textures/grass-block.jpg");
+	GLuint texture;
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_data.width, texture_data.height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data.data);
 	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(textureData);
+	texture_data.free_image();
 
 	// UI state
 	bool show_window = true;
@@ -248,6 +211,10 @@ int main(void)
 	scene.register_camera(&cam);
 	scene.register_input(&input);
 
+	// This compares the z coordinate of each pixel of a rendered object with the value stored in the depth buffer
+	// By default, if the incoming depth is less than the stored depth, we'll render (it's closer to the cam)
+	// OpenGL will use the clip space projection's z coordinate to test depth.
+	//glEnable(GL_DEPTH_TEST);
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
@@ -255,6 +222,7 @@ int main(void)
 		// Process inputs/logic
 		scene.tick();
 
+		// Shader programs are bound to the current opengl context
 		glUseProgram(shaderProgram);
 
 		glm::mat4 view = scene.get_camera()->generate_view_matrix();
@@ -297,6 +265,7 @@ int main(void)
 			//Logger::log("Binding " + std::to_string(mesh_vaos[i].id) + " with " + std::to_string(mesh_vertex_count[i]) + " verts.");
 			glBindVertexArray(mesh_vaos[i].id);
 			glDrawArrays(GL_TRIANGLES, 0, mesh_vertex_count[i]);
+			//Sleep(25);
 		}
 
 		glfwPollEvents();
