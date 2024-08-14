@@ -110,11 +110,11 @@ int main(void)
 	std::vector<GLuint> indices = {
 		// Front face indices
 		0, 1, 2,
-		2, 1, 3,
+		2, 3, 1,
 
 		// Back face
 		4, 5, 6,
-		6, 5, 7,
+		6, 7, 5,
 
 		// Left face
 		8, 9, 10,
@@ -134,7 +134,11 @@ int main(void)
 	};
 
 
-	const int CHUNK_W = 2, CHUNK_H = 2, CHUNK_D = 1;
+	// TODO: Review these links
+	// https://github.com/JamesRandall/SimpleVoxelEngine/blob/master/voxelEngine/src/VoxelGeometry.cpp
+	// https://github.com/JamesRandall/SimpleVoxelEngine/blob/master/voxelEngine/src/VoxelRenderer.cpp
+
+	const int CHUNK_W = 1, CHUNK_H = 1, CHUNK_D = 1;
 
 	const GLuint NUM_MESHES = CHUNK_W * CHUNK_H * CHUNK_D;
 	VAO mesh_vaos[NUM_MESHES];
@@ -142,6 +146,7 @@ int main(void)
 	for (int i = 0; i < CHUNK_W; i++) {
 		for (int j = 0; j < CHUNK_H; j++) {
 			for (int k = 0; k < CHUNK_D; k++) {
+				int curr_vao_index = (CHUNK_W * CHUNK_H * i) + (CHUNK_H * j) + k;
 				Voxel vox = Voxel(i, j, k);
 
 				VAO _vao = VAO();
@@ -151,14 +156,13 @@ int main(void)
 				VBO _vbo = VBO();
 
 				_vbo.set_data(vox.verts, GL_STATIC_DRAW);
-				mesh_vertex_count[i] = vox.verts.size();
+				mesh_vertex_count[curr_vao_index] = vox.verts.size();
 
 				// Potential Issue: We are using the same index buffer for all VAOs,
 				// but we're not taking into account the offset of the vertex data in each vao
 				EBO _ebo = EBO();
 				_ebo.set_data(indices, GL_STATIC_DRAW);
 
-				int curr_vao_index = (CHUNK_W * CHUNK_H * i) + (CHUNK_H * j) + k;
 				Logger::log(std::to_string(curr_vao_index) + " " + std::to_string(i) + " " + std::to_string(j));
 				// TODO: Maybe our ebo needs to have an attribute pointer?
 				// Position attrib pointer
@@ -179,9 +183,6 @@ int main(void)
 	glUseProgram(shaderProgram);
 	// Set background color
 	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-
-	//* MOVE THIS CODE SOMEWHERE INTO THE ASSET LOADER
-	// Loading a texture
 
 	// TODO: Memory leak issue here most likely
 	// We are create an ImageTextureData struct inside the function's stack frame, and returning a COPY of it
@@ -214,7 +215,7 @@ int main(void)
 	// This compares the z coordinate of each pixel of a rendered object with the value stored in the depth buffer
 	// By default, if the incoming depth is less than the stored depth, we'll render (it's closer to the cam)
 	// OpenGL will use the clip space projection's z coordinate to test depth.
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
@@ -234,6 +235,11 @@ int main(void)
 		GLuint mvpLocation = glGetUniformLocation(shaderProgram, "mvp");
 		glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 
+		// Rendering
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		// Update the clear color (incase we changed it from the debugger)
+		glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
+
 		// Start the dear imgui frame
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -250,11 +256,6 @@ int main(void)
 			ImGui::End();
 		}
 
-		// Rendering
-		glClear(GL_COLOR_BUFFER_BIT);
-		// Update the clear color (incase we changed it from the debugger)
-		glClearColor(clear_color.r, clear_color.g, clear_color.b, 1.0f);
-
 		// Imgui rendering (do this before our draw calls)
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -264,6 +265,7 @@ int main(void)
 		for (int i = 0; i < NUM_MESHES; i++) {
 			//Logger::log("Binding " + std::to_string(mesh_vaos[i].id) + " with " + std::to_string(mesh_vertex_count[i]) + " verts.");
 			glBindVertexArray(mesh_vaos[i].id);
+			// TODO: Read https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDrawArrays.xhtml
 			glDrawArrays(GL_TRIANGLES, 0, mesh_vertex_count[i]);
 			//Sleep(25);
 		}
