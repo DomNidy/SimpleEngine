@@ -266,7 +266,9 @@ int main(void)
 			//Logger::log("Binding " + std::to_string(mesh_vaos[i].id) + " with " + std::to_string(mesh_vertex_count[i]) + " verts.");
 			glBindVertexArray(mesh_vaos[i].id);
 			// TODO: Read https://registry.khronos.org/OpenGL-Refpages/gl4/html/glDrawArrays.xhtml
-			glDrawArrays(GL_TRIANGLES, 0, mesh_vertex_count[i]);
+			// TODO: When drawing multiple errors, nvoglv64.dll throws an error,
+			// this likely means the data for that element has not been sent to the gpu, or our offset (void*)0 is incorrect
+			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, (void*)0);
 			//Sleep(25);
 		}
 
