@@ -1,45 +1,45 @@
-#include "Scene.h"
+#include "World.h"
 #include "../logger/Logger.hpp"
 #include "../rendering/Camera.hpp"
 #include "../input/Input.hpp"
 using namespace whim;
 
-Scene::Scene()
+World::World()
 {
 	delta_time = 0.00001f;
 	last_time = glfwGetTime();
 }
 
-void Scene::register_camera(Camera* camera)
+void World::register_camera(Camera* camera)
 {
-	this->sceneCamera = camera;
-	this->sceneCamera->_scene = this;
+	this->worldCamera = camera;
+	this->worldCamera->_world = this;
 }
 
 
 
-double whim::Scene::get_delta_time() const
+double whim::World::get_delta_time() const
 {
 	return delta_time;
 }
 
-const Camera* Scene::get_camera() const
+const Camera* World::get_camera() const
 {
-	return this->sceneCamera;
+	return this->worldCamera;
 };
 
-const Input* Scene::get_input() const {
+const Input* World::get_input() const {
 	return this->input;
 }
 
-void whim::Scene::update_delta_time()
+void whim::World::update_delta_time()
 {
 	double now= glfwGetTime();
 	delta_time = now - last_time;
 	last_time = now;
 }
 
-void Scene::register_input(Input* input)
+void World::register_input(Input* input)
 {
 	if (input->window == nullptr) {
 		Logger::log_warning("You registered an input, but the input you registered has no associated window, so no input will ever be received");
@@ -49,7 +49,7 @@ void Scene::register_input(Input* input)
 	this->input->_scene = this;
 }
 
-void Scene::tick() {
+void World::tick() {
 	update_delta_time();
 	input->process_input();
 }

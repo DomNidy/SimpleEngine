@@ -20,7 +20,7 @@
 #include "core/rendering/VBO.h"
 #include "core/rendering/VAO.h"
 #include "core/rendering/Camera.hpp"
-#include "core/game/Scene.h"
+#include "core/game/World.h"
 #include "core/util/Util.hpp"
 #include "core/rendering/Voxel.h"
 
@@ -133,6 +133,7 @@ int main(void)
 		22, 21, 23
 	};
 
+	
 
 	// TODO: Review these links
 	// https://github.com/JamesRandall/SimpleVoxelEngine/blob/master/voxelEngine/src/VoxelGeometry.cpp
@@ -202,7 +203,7 @@ int main(void)
 	glm::vec3 clear_color = glm::vec3(0.12f, 0.083f, 0.105f);
 
 	// Read inputs from window
-	Scene scene = Scene();
+	World scene = World();
 	Input input = Input(window);
 	Camera cam = Camera();
 

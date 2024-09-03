@@ -9,7 +9,7 @@ namespace whim {
 		cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 		cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-		_scene = nullptr;
+		_world = nullptr;
 	}
 	glm::mat4 Camera::generate_view_matrix() const
 	{
@@ -22,7 +22,7 @@ namespace whim {
 		constexpr float moveSpeed = 1.5f;
 		constexpr float turnSpeed = 100.0f;
 
-		float delta_time = _scene->get_delta_time();
+		float delta_time = _world->get_delta_time();
 
 
 		switch (command) {

@@ -7,10 +7,10 @@ namespace whim {
 	// Forward declarations
 	class Camera;
 	class Input;
-	class Scene
+	class World
 	{
 	public:
-		Scene();
+		World();
 
 		/// <summary>
 		/// Determines which Camera this schene should use
@@ -42,7 +42,7 @@ namespace whim {
 		/// The active camera rendering out the Scene
 		/// In the future, we may allow for this camera to be swapped out
 		/// </summary>
-		Camera* sceneCamera;
+		Camera* worldCamera;
 		/// <summary>
 		/// We can only have one Input active at a time per scene
 		/// We will respond to events received from this input

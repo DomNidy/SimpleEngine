@@ -32,9 +32,9 @@ namespace whim {
 		/// <summary>
 		/// The scene that has registered this Camera
 		/// </summary>
-		Scene* _scene;
+		World* _scene;
 
-		friend class Scene;
+		friend class World;
 	protected:
 		void process_input();
 		/// <summary>

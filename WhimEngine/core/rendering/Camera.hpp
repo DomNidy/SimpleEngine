@@ -1,12 +1,12 @@
 #pragma once
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
-#include "../game/Scene.h"
+#include "../game/World.h"
 #include "../input/InputCommand.hpp"
 
 namespace whim {
 
-	class Scene;
+	class World;
 
 	class Camera
 	{
@@ -52,7 +52,7 @@ namespace whim {
 		/// <summary>
 		/// The scene that has registered this Camera
 		/// </summary>
-		Scene* _scene;
+		World* _world;
 
 		float yaw = -90.f;
 		float pitch = 0.0f;
