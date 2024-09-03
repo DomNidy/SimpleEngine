@@ -16,7 +16,16 @@ void World::register_camera(Camera* camera)
 	this->worldCamera->_world = this;
 }
 
+void World::register_input(std::unique_ptr<Input> input)
+{
+	if (input->window == nullptr) {
+		Logger::log_warning("You registered an input, but the input you registered has no associated window, so no input will ever be received");
+	}
 
+	// move transfers ownership of the Input object to World
+	this->input = std::move(input);
+	this->input->_scene = this;
+}
 
 double whim::World::get_delta_time() const
 {
@@ -29,7 +38,7 @@ const Camera* World::get_camera() const
 };
 
 const Input* World::get_input() const {
-	return this->input;
+	return this->input.get();
 }
 
 void whim::World::update_delta_time()
@@ -39,15 +48,7 @@ void whim::World::update_delta_time()
 	last_time = now;
 }
 
-void World::register_input(Input* input)
-{
-	if (input->window == nullptr) {
-		Logger::log_warning("You registered an input, but the input you registered has no associated window, so no input will ever be received");
-	}
 
-	this->input = input;
-	this->input->_scene = this;
-}
 
 void World::tick() {
 	update_delta_time();

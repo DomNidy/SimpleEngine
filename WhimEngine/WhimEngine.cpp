@@ -3,6 +3,7 @@
 #include "thirdparty/imgui/imgui_impl_opengl3.h"
 
 #include <iostream>
+#include <memory>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <gl/GL.h>
@@ -148,7 +149,7 @@ int main(void)
 		for (int j = 0; j < CHUNK_H; j++) {
 			for (int k = 0; k < CHUNK_D; k++) {
 				int curr_vao_index = (CHUNK_W * CHUNK_H * i) + (CHUNK_H * j) + k;
-				Voxel vox = Voxel(i, j, k);
+				Voxel vox = Voxel(i, j, k-8);
 
 				VAO _vao = VAO();
 				_vao.bind();
@@ -202,16 +203,18 @@ int main(void)
 	bool show_window = true;
 	glm::vec3 clear_color = glm::vec3(0.12f, 0.083f, 0.105f);
 
-	// Read inputs from window
-	World scene = World();
-	Input input = Input(window);
+
+	World world = World();
 	Camera cam = Camera();
 
-	// cam will respond to inputs from input
-	input.register_observer(&cam);
+	world.register_camera(&cam);
 
-	scene.register_camera(&cam);
-	scene.register_input(&input);
+	// Create input object and register the Camera as the observer
+	// (our camera will read the inputs, and respond to them by "moving" the camera)
+	std::unique_ptr<Input> input = std::make_unique<Input>(window);
+	input.get()->register_observer(&cam);
+	// Move ownership of Input to World object
+	world.register_input(std::move(input));
 
 	// This compares the z coordinate of each pixel of a rendered object with the value stored in the depth buffer
 	// By default, if the incoming depth is less than the stored depth, we'll render (it's closer to the cam)
@@ -222,12 +225,12 @@ int main(void)
 	while (!glfwWindowShouldClose(window))
 	{
 		// Process inputs/logic
-		scene.tick();
+		world.tick();
 
 		// Shader programs are bound to the current opengl context
 		glUseProgram(shaderProgram);
 
-		glm::mat4 view = scene.get_camera()->generate_view_matrix();
+		glm::mat4 view = world.get_camera()->generate_view_matrix();
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 mvp = projection * view * model;
